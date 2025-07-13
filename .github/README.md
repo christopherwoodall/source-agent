@@ -6,12 +6,12 @@
 
 </p>
 
-[ci-badge]: https://github.com/christopherwoodall/src-agent/actions/workflows/lint.yaml/badge.svg?branch=main
-[ci-url]: https://github.com/christopherwoodall/src-agent/actions/workflows/lint.yml
-[pypi-badge]: https://badge.fury.io/py/src-agent.svg
-[pypi-url]: https://pypi.org/project/src-agent/
-[release-badge]: https://github.com/christopherwoodall/src-agent/actions/workflows/release.yml/badge.svg
-[release-url]: https://github.com/christopherwoodall/src-agent/actions/workflows/release.yml
+[ci-badge]: https://github.com/christopherwoodall/source-agent/actions/workflows/lint.yaml/badge.svg?branch=main
+[ci-url]: https://github.com/christopherwoodall/source-agent/actions/workflows/lint.yml
+[pypi-badge]: https://badge.fury.io/py/source-agent.svg
+[pypi-url]: https://pypi.org/project/source-agent/
+[release-badge]: https://github.com/christopherwoodall/source-agent/actions/workflows/release.yml/badge.svg
+[release-url]: https://github.com/christopherwoodall/source-agent/actions/workflows/release.yml
 
 # Source Agent
 Simple coding agent.
@@ -24,11 +24,11 @@ Simple coding agent.
 ## Getting Started
 
 ```bash
-git clone [https://github.com/christopherwoodall/src-agent](https://github.com/christopherwoodall/src-agent)
-cd src-agent
+git clone [https://github.com/christopherwoodall/source-agent](https://github.com/christopherwoodall/source-agent)
+cd source-agent
 pip install -e ".[developer]"
 
-src-agent --prompt "Analyze the file at src/src_agent/entrypoint.py and suggest any edits."
+source-agent --prompt "Analyze the file at src/src_agent/entrypoint.py and suggest any edits."
 ```
 
 This project uses [OpenRouter](https://openrouter.ai/) to run the agent. You will need to set both the `OPENROUTER_API_KEY` and `OPENROUTER_BASE_URL` environment variables.
