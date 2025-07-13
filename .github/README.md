@@ -28,10 +28,19 @@ git clone [https://github.com/christopherwoodall/src-agent](https://github.com/c
 cd src-agent
 pip install -e ".[developer]"
 
-src-agent
+src-agent --prompt "Analyze the file at src/src_agent/entrypoint.py and suggest any edits."
 ```
 
+This project uses [OpenRouter](https://openrouter.ai/) to run the agent. You will need to set both the `OPENROUTER_API_KEY` and `OPENROUTER_BASE_URL` environment variables.
 
-## References
-- [Using OnepRouter with Python](https://openrouter.ai/docs/quickstart)
-- https://agentic-patterns.com/
+```bash
+export OPENROUTER_API_KEY=your_api_key_here
+export OPENROUTER_BASE_URL=https://api.openrouter.ai/v1
+```
+
+---
+
+
+# Resources
+  - [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
+  - [Agentic Patterns](https://agentic-patterns.com/)
