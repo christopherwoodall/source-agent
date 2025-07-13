@@ -40,6 +40,7 @@ export OPENROUTER_BASE_URL=https://api.openrouter.ai/v1
 
 ---
 
-## References
-- [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
-- https://agentic-patterns.com/
+
+# Resources
+  - [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
+  - [Agentic Patterns](https://agentic-patterns.com/)
