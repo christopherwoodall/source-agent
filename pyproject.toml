@@ -1,0 +1,153 @@
+[build-system]
+requires = ["hatchling>=1.11.0"]
+build-backend = "hatchling.build"
+
+
+[project.scripts]
+code-agent = "code-agent.main:main"
+
+
+[project]
+requires-python = ">=3.10"
+version = "0.0.11"
+name        = "code-agent"
+description = "Simple coding agent."
+readme      = ".github/README.md"
+license     = "MIT"
+
+dependencies = [
+    "openai",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+developer = [
+    "bandit",
+    "black",
+    "hatch",
+    "jinja2",
+    "mypy",
+    "pytest",
+    "ruff",
+]
+
+
+[tool.hatch.build]
+ignore-vcs = false
+reproducible = true
+directory = "dist"
+sources = ["src"]
+include = ["src/", "LICENSE", "pyproject.toml", ".github/README.md"]
+
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-v"
+
+
+[tool.ruff]
+# Good overview of ruff's configuration options here:
+#   https://gist.github.com/carloshbcabral/b99510d4b1fc1c2765f07f3eb1f5f844
+
+# The minimum Python version to target, e.g., when considering automatic code upgrades,
+# like rewriting type annotations.
+# https://docs.astral.sh/ruff/settings/#target-version
+target-version = "py311"
+
+# The directories to consider when resolving first- vs. third-party imports.
+# https://docs.astral.sh/ruff/settings/#src
+src = [".", "src"]
+
+# Whether to automatically exclude files that are ignored by .ignore, .gitignore,
+# .git/info/exclude, and global gitignore files.
+# https://docs.astral.sh/ruff/settings/#respect-gitignore
+respect-gitignore = true
+
+# The style in which violation messages should be formatted.
+# https://docs.astral.sh/ruff/settings/#output-format
+output-format = "full"
+
+# A list of rule codes or prefixes to enable, in addition to those specified by select.
+# https://docs.astral.sh/ruff/settings/#lint_extend-select
+# I: auto-sort imports like isort
+# B: enable flake8-bugbear
+# Q: flake8-quotes
+extend-select = ["I", "B", "Q"]
+
+# Enable all pycodestyle (`E`) rules
+# https://docs.astral.sh/ruff/rules
+select = ["E"]
+
+# Whether to show an enumeration of all fixed lint violations
+# https://docs.astral.sh/ruff/settings/#show-fixes
+show-fixes = true
+
+# Optional: autofix issues
+fix = true
+
+# The line length to use when enforcing long-lines violations (like E501) and at which
+# isort and the formatter prefers to wrap lines.
+# https://docs.astral.sh/ruff/settings/#line-length
+line-length = 120
+
+# The number of spaces per indentation level (tab).
+# https://docs.astral.sh/ruff/settings/#indent-width
+indent-width = 4
+
+
+[tool.ruff.format]
+exclude = ["__init__.py"]
+
+# Configures the preferred quote character for strings.
+# https://docs.astral.sh/ruff/settings/#format_quote-style
+quote-style = "double"
+
+# The character Ruff uses at the end of a line.
+# https://docs.astral.sh/ruff/settings/#format_line-ending
+line-ending = "lf"
+
+# Ruff uses existing trailing commas as an indication that short lines should be left
+# separate.
+# https://docs.astral.sh/ruff/settings/#format_skip-magic-trailing-comma
+skip-magic-trailing-comma = false
+
+
+# Whether to use spaces or tabs for indentation.
+# https://docs.astral.sh/ruff/settings/#format_indent-style
+indent-style = "space"
+
+# Whether to format code snippets in docstrings.
+# https://docs.astral.sh/ruff/settings/#format_docstring-code-format
+docstring-code-format = true
+
+
+[tool.ruff.lint]
+# A list of rule codes or prefixes to consider fixable.
+# https://docs.astral.sh/ruff/settings/#lint_fixable
+fixable = ["ALL"]
+
+# A list of rule codes or prefixes to ignore.
+# https://docs.astral.sh/ruff/settings/#lint_ignore
+ignore = []
+
+# A list of task tags to recognize.
+# https://docs.astral.sh/ruff/settings/#lint_task-tags
+task-tags = ["TODO", "FIXME", "XXX"]
+
+
+[tool.ruff.lint.flake8-bandit]
+# Whether to disallow try-except-pass (S110) for specific exception types.
+# https://docs.astral.sh/ruff/settings/#lint_flake8-bandit_check-typed-exception
+check-typed-exception = false
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+length-sort-straight = true
+length-sort = true
+no-sections = true

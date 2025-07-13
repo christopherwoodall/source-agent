@@ -1,0 +1,47 @@
+---
+name: 🦄 Code Linting & Scanning
+
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+    - main
+
+
+# Limit workflow to one job per branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+
+env:
+  STABLE_PYTHON_VERSION: '3.12.3'
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+
+jobs:
+  code-quality:
+    name: 💄 Code Quality
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📩 Checkout the source w/ full depth(for tags and SCM)
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+
+      - name: 🐍 Setup Python ${{ env.STABLE_PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.STABLE_PYTHON_VERSION }}
+
+
+      - name: 🌱 Linting with black
+        run: |
+          mkdir -p /tmp/artifacts
+          pip install --editable ".[developer]"
+          make lint
