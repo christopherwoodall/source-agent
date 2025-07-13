@@ -125,6 +125,7 @@ class Agent:
         request = {
             "model": self.model_string,
             "messages": self.messages,
+            # TODO: Agent ALWAYS wants to use tools when this is sent.
             # "tools": tools,
             "temperature": self.temperature
         }
