@@ -31,6 +31,14 @@ pip install -e ".[developer]"
 src-agent
 ```
 
+This project uses [OpenRouter](https://openrouter.ai/) to run the agent. You will need to set both the `OPENROUTER_API_KEY` and `OPENROUTER_BASE_URL` environment variables.
+
+```bash
+export OPENROUTER_API_KEY=your_api_key_here
+export OPENROUTER_BASE_URL=https://api.openrouter.ai/v1
+```
+
+---
 
 ## References
 - [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
