@@ -1,12 +1,11 @@
 import os
+
 import argparse
-
-import openai
-
-from pathlib import Path
+import src_agent
 
 
-# TODO - Check args for provider
+
+# TODO - Make this dynamic.
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", False)
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 
@@ -23,49 +22,27 @@ def dispatch_agent(prompt):
         str: The response from the agent.
     """
     print("Welcome to the Source Agent!")
-    session = openai.OpenAI(
-        base_url=OPENROUTER_BASE_URL,
-        api_key=OPENROUTER_API_KEY,
-    )
-    
+
+    # temperature = 0.7
     # model = "openai/gpt-3.5-turbo"
     # model = "moonshotai/kimi-k2"
     # This is free right now.
-    model = "moonshotai/kimi-k2:free"
-    temperature = 0.7
+    provider = "moonshotai"
+    model = "kimi-k2:free"
 
-    messages = []
-    system_prompt = Path("AGENTS.md").read_text(encoding="utf-8")
-
-    # message = Path("TASKS.md").read_text(encoding="utf-8")
-    message = prompt
-
-    messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": message})
-
-
-    completion = session.chat.completions.create(
-        model=model, messages=messages, temperature=temperature
+    agent = src_agent.Agent(
+        api_key=OPENROUTER_API_KEY,
+        base_url=OPENROUTER_BASE_URL,
+        provider=provider,
+        model=model,
+        prompt=prompt
     )
 
-    response = completion.choices[0].message.content
-
-    messages.append(
-        {"role": "assistant", "content": response}
-    )
-
-    print(response)
-    print("\n---\n")
-    print("Messages:"
-          f"\n{messages}\n---\n")
-
-    return response
+    print(agent.greet())
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Simple coding agent."
-    )
+    parser = argparse.ArgumentParser(description="Simple coding agent.")
     parser.add_argument(
         "-p",
         "--prompt",
@@ -76,7 +53,7 @@ def main():
     args = parser.parse_args()
 
     prompt = args.prompt
-    
+
     if not prompt:
         raise ValueError("Prompt cannot be empty")
 
@@ -85,7 +62,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# Resources
-#  - [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
