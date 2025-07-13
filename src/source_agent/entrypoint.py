@@ -1,6 +1,6 @@
 import os
 import argparse
-import src_agent
+import source_agent
 
 
 # TODO - Make this dynamic.
@@ -31,7 +31,7 @@ def dispatch_agent(prompt):
     # provider = "openai"
     # model = "gpt-3.5-turbo"
 
-    agent = src_agent.Agent(
+    agent = source_agent.Agent(
         api_key=OPENROUTER_API_KEY,
         base_url=OPENROUTER_BASE_URL,
         provider=provider,
