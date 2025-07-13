@@ -6,29 +6,29 @@
 
 </p>
 
-[ci-badge]: https://github.com/christopherwoodall/code-pilot/actions/workflows/lint.yaml/badge.svg?branch=main
-[ci-url]: https://github.com/christopherwoodall/code-pilot/actions/workflows/lint.yml
-[pypi-badge]: https://badge.fury.io/py/code-pilot.svg
-[pypi-url]: https://pypi.org/project/code-pilot/
-[release-badge]: https://github.com/christopherwoodall/code-pilot/actions/workflows/release.yml/badge.svg
-[release-url]: https://github.com/christopherwoodall/code-pilot/actions/workflows/release.yml
+[ci-badge]: https://github.com/christopherwoodall/src-agent/actions/workflows/lint.yaml/badge.svg?branch=main
+[ci-url]: https://github.com/christopherwoodall/src-agent/actions/workflows/lint.yml
+[pypi-badge]: https://badge.fury.io/py/src-agent.svg
+[pypi-url]: https://pypi.org/project/src-agent/
+[release-badge]: https://github.com/christopherwoodall/src-agent/actions/workflows/release.yml/badge.svg
+[release-url]: https://github.com/christopherwoodall/src-agent/actions/workflows/release.yml
 
-# Code Pilot
+# Source Agent
 Simple coding agent.
 
 ## How it Works
-**Code Pilot** operates as a stateless entity, guided by clear directives and external context. Its behavior is primarily defined by **`AGENTS.md`**, which serves as the core system prompt. For current tasks and instructions, it references **`TASKS.md`**, while **`CHANGELOG.md`** provides essential historical context and decision-making rationale. This setup ensures consistent and informed responses without internal memory.
+**Source Agent** operates as a stateless entity, guided by clear directives and external context. Its behavior is primarily defined by **`AGENTS.md`**, which serves as the core system prompt. For current tasks and instructions, it references **`TASKS.md`**, while **`CHANGELOG.md`** provides essential historical context and decision-making rationale. This setup ensures consistent and informed responses without internal memory.
 
 ---
 
 ## Getting Started
 
 ```bash
-git clone [https://github.com/christopherwoodall/code-pilot](https://github.com/christopherwoodall/code-pilot)
-cd code-pilot
+git clone [https://github.com/christopherwoodall/src-agent](https://github.com/christopherwoodall/src-agent)
+cd src-agent
 pip install -e ".[developer]"
 
-code-pilot
+src-agent
 ```
 
 
