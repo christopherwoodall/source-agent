@@ -24,11 +24,14 @@ def dispatch_agent(prompt):
     print("Welcome to the Source Agent!")
 
     # temperature = 0.7
-    # model = "openai/gpt-3.5-turbo"
-    # model = "moonshotai/kimi-k2"
-    # This is free right now.
+    
     provider = "moonshotai"
-    model = "kimi-k2:free"
+    model = "kimi-k2"
+    # This is free right now.
+    # model = "kimi-k2:free"
+
+    # provider = "openai"
+    # model = "gpt-3.5-turbo"
 
     agent = src_agent.Agent(
         api_key=OPENROUTER_API_KEY,
