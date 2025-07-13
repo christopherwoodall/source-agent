@@ -1,5 +1,5 @@
 # Resources
-#  - [Using OnepRouter with Python](https://openrouter.ai/docs/quickstart)
+#  - [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
 
 def main():
     print("Welcome to the Source Agent!")

@@ -33,5 +33,5 @@ src-agent
 
 
 ## References
-- [Using OnepRouter with Python](https://openrouter.ai/docs/quickstart)
+- [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
 - https://agentic-patterns.com/
