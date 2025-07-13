@@ -1,8 +1,6 @@
 import os
-
 import argparse
 import src_agent
-
 
 
 # TODO - Make this dynamic.
@@ -24,7 +22,7 @@ def dispatch_agent(prompt):
     print("Welcome to the Source Agent!")
 
     # temperature = 0.7
-    
+
     provider = "moonshotai"
     model = "kimi-k2"
     # This is free right now.
@@ -38,7 +36,7 @@ def dispatch_agent(prompt):
         base_url=OPENROUTER_BASE_URL,
         provider=provider,
         model=model,
-        prompt=prompt
+        prompt=prompt,
     )
 
     print(agent.greet())
