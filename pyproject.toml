@@ -9,7 +9,7 @@ src-agent = "src_agent.entrypoint:main"
 
 [project]
 requires-python = ">=3.10"
-version = "0.0.1"
+version = "0.0.2"
 name        = "src-agent"
 description = "Simple coding agent."
 readme      = ".github/README.md"
