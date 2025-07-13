@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 
 [project.scripts]
-code-agent = "code_agent.entrypoint:main"
+code-pilot = "code_pilot.entrypoint:main"
 
 
 [project]
 requires-python = ">=3.10"
 version = "0.0.1"
-name        = "code-agent"
+name        = "code-pilot"
 description = "Simple coding agent."
 readme      = ".github/README.md"
 license     = "MIT"
