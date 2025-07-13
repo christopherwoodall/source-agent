@@ -1,11 +1,13 @@
 import json
+from pyexpat.errors import messages
 
 import openai
 
 from pathlib import Path
 
 
-def test_tool():
+def grep(pattern, path):
+    print("test_tool: Test tool called.")
     return "THIS WAS A TEST OF TOOL USAGE. THE SECRET IS '6789012345'"
 
 
@@ -13,12 +15,21 @@ tools = [
   {
     "type": "function",
     "function": {
-      "name": "test_tool",
-      "description": "A tool for testing purposes.",
+      "name": "grep",
+      "description": "Search for a pattern in a file.",
       "parameters": {
         "type": "object",
-        "properties": {},
-        "required": []
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "The pattern to search for."
+          },
+          "path": {
+            "type": "string",
+            "description": "The path to the file to search."
+          }
+        },
+        "required": ["pattern", "path"]
       }
     }
   }
@@ -26,7 +37,7 @@ tools = [
 
 
 TOOL_MAPPING = {
-    "test_tool": test_tool
+    "grep": grep
 }
 
 
@@ -36,7 +47,7 @@ class Agent:
         self.base_url = base_url
         
         self.model_string = "/".join([provider, model])
-        self.temperature = 0.7
+        self.temperature = 0.4
 
         self.messages = []
         self.prompt = prompt
@@ -47,59 +58,60 @@ class Agent:
             api_key=self.api_key,
         )
 
-        # self.messages.append({"role": "system", "content": self.system_prompt})
+        self.messages.append({"role": "system", "content": self.system_prompt})
         # self.messages.append({"role": "user", "content": self.prompt})
 
-        # completion = session.chat.completions.create(
-        #     model=model, messages=messages, temperature=temperature
-        # )
-
-        # response = completion.choices[0].message.content
-
-        # messages.append({"role": "assistant", "content": response})
-                
-        # print(src_agent)
-        # print(response)
-        # print("\n---\n")
-        # print("Messages:" f"\n{messages}\n---\n")
-
-        # return response
-
-        self.system_prompt = "You are a helpful assistant."
-        self.prompt = "Test tool usage."
-
-        self.messages.append({"role": "system", "content": self.system_prompt})
-        self.messages.append({"role": "user", "content": self.prompt})
+        self.process()
 
 
-        response_1 = self.chat(message="test tool usage")
-        response_2 = response_1.choices[0]
+    def process(self):
+        step_1 = (
+            "Analyze the user's prompt and determine what files need "
+            "to be created or modified. Develop a plan to accomplish this task. "
+            "The user's prompt is: "
+            f"{self.prompt}"
+        )
 
-        import pprint
-        print(response_1)
-        pprint.pprint(response_1.to_dict())
+        completion = self.chat(message="test tool usage")
+        response = completion.choices[0]
+        agent_message = response.message.content
 
-        tool_calls = response_2.message.tool_calls
+        self.messages.append({"role": "assistant", "content": agent_message})
 
-        if tool_calls:
-            for tool_call in tool_calls:
-                tool_name = tool_call.function.name
 
-                tool_args = json.loads(tool_call.function.arguments)
+        print("Response:", response)
+        print("Agent Message:", agent_message)
 
-                # Look up the correct tool locally, and call it with the provided arguments
-                # Other tools can be added without changing the agentic loop
-                tool_response = TOOL_MAPPING[tool_name](**tool_args)
 
-                # self.messages.append({
-                # "role": "tool",
-                # "tool_call_id": tool_call.id,
-                # "name": tool_name,
-                # "content": json.dumps(tool_response),
-                # })
+        ### TOOL USAGE EXAMPLE
+        # response_1 = self.chat(message="test tool usage")
+        # response_2 = response_1.choices[0]
 
-                print(f"Tool call: {tool_name} with args: {tool_args}")
-                print(f"Tool response: {tool_response}")
+        # import pprint
+        # print(response_1)
+        # pprint.pprint(response_1.to_dict())
+
+        # tool_calls = response_2.message.tool_calls
+
+        # if tool_calls:
+        #     for tool_call in tool_calls:
+        #         tool_name = tool_call.function.name
+
+        #         tool_args = json.loads(tool_call.function.arguments)
+
+        #         # Look up the correct tool locally, and call it with the provided arguments
+        #         # Other tools can be added without changing the agentic loop
+        #         tool_response = TOOL_MAPPING[tool_name](**tool_args)
+
+        #         # self.messages.append({
+        #         # "role": "tool",
+        #         # "tool_call_id": tool_call.id,
+        #         # "name": tool_name,
+        #         # "content": json.dumps(tool_response),
+        #         # })
+
+        #         print(f"Tool call: {tool_name} with args: {tool_args}")
+        #         print(f"Tool response: {tool_response}")
 
 
     def determine_intent(self, message):
@@ -113,13 +125,12 @@ class Agent:
         request = {
             "model": self.model_string,
             "messages": self.messages,
-            "tools": tools,
+            # "tools": tools,
             "temperature": self.temperature
         }
 
         response = self.session.chat.completions.create(**request)
 
-        # return response.choices[0].message.content
         return response
     
 
