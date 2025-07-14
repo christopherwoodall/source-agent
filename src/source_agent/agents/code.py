@@ -5,7 +5,7 @@ import source_agent
 from pathlib import Path
 from pyexpat.errors import messages
 
-
+# TODO - MOVE TOOLS
 def grep(pattern):
     """
     Recursive search for a pattern in a filename.
@@ -41,67 +41,8 @@ def write(path, content):
     Path(path).write_text(content)
     return f"Content written to {path}"
 
+
 # TODO - MOVE TOOLS
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "grep",
-            "description": "Search for a file matching a pattern.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "pattern": {
-                        "type": "string",
-                        "description": "Python glob pattern to match files.",
-                        "default": "**/*.py",
-                    }
-                },
-                "required": ["pattern"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "cat",
-            "description": "Read the contents of a file.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "The path to the file to read.",
-                    }
-                },
-                "required": ["path"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "write",
-            "description": "Write content to a file.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "The path to the file to write.",
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "The content to write to the file.",
-                    },
-                },
-                "required": ["path", "content"],
-            },
-        },
-    },
-]
-
-
 TOOL_MAPPING = {"grep": grep, "cat": cat, "write": write}
 
 
@@ -212,13 +153,10 @@ class CodeAgent:
         request = {
             "model": self.model_string,
             "temperature": self.temperature,
-            "tools": tools,
+            "tools": source_agent.tools.tools,
             "tool_choice": "auto",
             "messages": self.messages,
         }
-        # TODO - Move tools
-        print(source_agent.tools.TEST_VAR)
-        exit()
 
         response = self.session.chat.completions.create(**request)
 
