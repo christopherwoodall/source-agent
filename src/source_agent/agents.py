@@ -6,9 +6,18 @@ from pathlib import Path
 from pyexpat.errors import messages
 
 
-def grep(pattern, path):
-    print("test_tool: Test tool called.")
-    return "THIS WAS A TEST OF TOOL USAGE. THE SECRET IS '6789012345'"
+def grep(pattern):
+    """
+    Recursive search for a pattern in a filename.
+    Args:
+        pattern (str): The pattern to search for.
+    Returns:
+        list: A list of files that match the pattern.
+    """
+    files = list(Path(".").glob(pattern))
+    if not files:
+        return f"No files found matching pattern: {pattern}"
+    return [str(file) for file in files]
 
 
 def cat(path):
@@ -19,7 +28,18 @@ def cat(path):
     Returns:
         str: The contents of the file.
     """
-    return Path(path).read_text(encoding="utf-8")
+    return [Path(path).read_text()]
+
+
+def write(path, content):
+    """
+    Write content to a file.
+    Args:
+        path (str): The path to the file to write.
+        content (str): The content to write to the file.
+    """
+    Path(path).write_text(content)
+    return f"Content written to {path}"
 
 
 tools = [
@@ -27,20 +47,17 @@ tools = [
         "type": "function",
         "function": {
             "name": "grep",
-            "description": "Search for a pattern in a file.",
+            "description": "Search for a file matching a pattern.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "pattern": {
                         "type": "string",
-                        "description": "The pattern to search for.",
-                    },
-                    "path": {
-                        "type": "string",
-                        "description": "The path to the file to search.",
-                    },
+                        "description": "Python glob pattern to match files.",
+                        "default": "**/*.py",
+                    }
                 },
-                "required": ["pattern", "path"],
+                "required": ["pattern"],
             },
         },
     },
@@ -61,10 +78,31 @@ tools = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "write",
+            "description": "Write content to a file.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The path to the file to write.",
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The content to write to the file.",
+                    },
+                },
+                "required": ["path", "content"],
+            },
+        },
+    },
 ]
 
 
-TOOL_MAPPING = {"grep": grep, "cat": cat}
+TOOL_MAPPING = {"grep": grep, "cat": cat, "write": write}
 
 
 class Agent:
@@ -91,26 +129,26 @@ class Agent:
 
         self.process()
 
-    def process(self):
-        step_1 = (
-            "Analyze the user's prompt and determine what files need "
-            "to be read. Use the tools to your advantage.\n"
-            "The user's prompt is:\n\n"
-            f"{self.prompt}"
-        )
-
-        completion = self.chat(message=step_1)
-
-        response = completion.choices[0]
+    def handle_response(self, response):
+        """
+        Handle the response from the agent.
+        Args:
+            response (openai.ChatCompletion): The response from the agent.
+        Returns:
+            str: The content of the response message.
+        """
+        response = response.choices[0]
         agent_message = response.message.content
 
-        self.messages.append({"role": "assistant", "content": agent_message})
+        self.messages.append(response.message)
 
+        ##########
         # import pprint
         # print(response_1)
         # pprint.pprint(response_1.to_dict())
         print("Response:", response)
         print("Agent Message:", agent_message)
+        ##########
 
         ### TOOL USAGE EXAMPLE
         tool_calls = response.message.tool_calls
@@ -125,17 +163,47 @@ class Agent:
                 # Other tools can be added without changing the agentic loop
                 tool_response = TOOL_MAPPING[tool_name](**tool_args)
 
-                # self.messages.append({
-                # "role": "tool",
-                # "tool_call_id": tool_call.id,
-                # "name": tool_name,
-                # "content": json.dumps(tool_response),
-                # })
+                self.messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": tool_name,
+                    # "content": json.dumps(tool_response),
+                    "content": str(tool_response),
+                })
 
                 print(f"Tool call: {tool_name} with args: {tool_args}")
-                print(f"Tool response: {tool_response}")
+                # print(f"Tool response: {tool_response}")
 
-    def determine_intent(self, message): ...
+
+    def process(self):
+        step_1 = (
+            "Analyze the user's prompt and determine what files need "
+            "to be read. Use the tools to your advantage.\n"
+            "The user's prompt is:\n\n"
+            f"{self.prompt}"
+        )
+
+        completion = self.chat(message=step_1)
+        response = self.handle_response(completion)
+        print(response)
+
+        # TESTING
+        step_2 = (
+            "Analyze the file contents and determine the intent of the user.\n"
+            "Develop a plan to address the user's request.\n"
+        )
+        completion = self.chat(message=step_2)
+        response = self.handle_response(completion)
+        print(response)
+
+        step_3 = (
+            "Generate code to address the user's request.\n"
+            "Write the new code in a file with the name 'new_code.py'.\n"
+        )
+        completion = self.chat(message=step_3)
+        response = self.handle_response(completion)
+        print(response)
+
 
     def chat(self, message=None):
         if message:
@@ -143,9 +211,10 @@ class Agent:
 
         request = {
             "model": self.model_string,
-            "messages": self.messages,
-            "tools": tools,
             "temperature": self.temperature,
+            "tools": tools,
+            "tool_choice": "auto",
+            "messages": self.messages,
         }
 
         response = self.session.chat.completions.create(**request)
