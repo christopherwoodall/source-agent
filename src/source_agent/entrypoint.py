@@ -31,7 +31,7 @@ def dispatch_agent(prompt):
     # provider = "openai"
     # model = "gpt-3.5-turbo"
 
-    agent = source_agent.agents.Agent(
+    agent = source_agent.agents.code.CodeAgent(
         api_key=OPENROUTER_API_KEY,
         base_url=OPENROUTER_BASE_URL,
         provider=provider,
