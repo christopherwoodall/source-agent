@@ -144,9 +144,6 @@ class CodeAgent:
         self.messages.append(response.message)
 
         ##########
-        # import pprint
-        # print(response_1)
-        # pprint.pprint(response_1.to_dict())
         print("Response:", response)
         print("Agent Message:", agent_message)
         ##########
@@ -169,8 +166,7 @@ class CodeAgent:
                         "role": "tool",
                         "tool_call_id": tool_call.id,
                         "name": tool_name,
-                        # "content": json.dumps(tool_response),
-                        "content": str(tool_response),
+                        "content": json.dumps(tool_response),
                     }
                 )
 
@@ -181,11 +177,11 @@ class CodeAgent:
         step_1 = (
             "Analyze the user's prompt and determine what files need "
             "to be read. Use the tools to your advantage.\n"
+            # "You can think recursively.\n"
+            # "Terminate thoughts with a `<stop_thoughts>` tag.\n"
             "The user's prompt is:\n\n"
             f"{self.prompt}"
         )
-        # "You can think recursively.\n"
-        # "End your thoughts with a `<stop_thoughts>` tag.\n"
 
         completion = self.chat(message=step_1)
         response = self.handle_response(completion)
