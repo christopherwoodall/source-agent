@@ -17,7 +17,6 @@ license     = "MIT"
 
 dependencies = [
     "openai",
-    "pyyaml",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +24,6 @@ developer = [
     "bandit",
     "black",
     "hatch",
-    "jinja2",
     "mypy",
     "pytest",
     "ruff",
@@ -67,17 +65,6 @@ respect-gitignore = true
 # The style in which violation messages should be formatted.
 # https://docs.astral.sh/ruff/settings/#output-format
 output-format = "full"
-
-# A list of rule codes or prefixes to enable, in addition to those specified by select.
-# https://docs.astral.sh/ruff/settings/#lint_extend-select
-# I: auto-sort imports like isort
-# B: enable flake8-bugbear
-# Q: flake8-quotes
-extend-select = ["I", "B", "Q"]
-
-# Enable all pycodestyle (`E`) rules
-# https://docs.astral.sh/ruff/rules
-select = ["E"]
 
 # Whether to show an enumeration of all fixed lint violations
 # https://docs.astral.sh/ruff/settings/#show-fixes
@@ -123,6 +110,17 @@ docstring-code-format = true
 
 
 [tool.ruff.lint]
+# A list of rule codes or prefixes to enable, in addition to those specified by select.
+# https://docs.astral.sh/ruff/settings/#lint_extend-select
+# I: auto-sort imports like isort
+# B: enable flake8-bugbear
+# Q: flake8-quotes
+extend-select = ["I", "B", "Q"]
+
+# Enable all pycodestyle (`E`) rules
+# https://docs.astral.sh/ruff/rules
+select = ["E"]
+
 # A list of rule codes or prefixes to consider fixable.
 # https://docs.astral.sh/ruff/settings/#lint_fixable
 fixable = ["ALL"]
