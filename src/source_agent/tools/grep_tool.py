@@ -1,6 +1,6 @@
 import fnmatch
 import pathlib
-from typing import Set, List
+from typing import Set
 from .plugins import registry
 
 
@@ -20,8 +20,8 @@ def load_gitignore_patterns(root_path: pathlib.Path = None) -> Set[str]:
                     # Skip empty lines and comments
                     if line and not line.startswith("#"):
                         # Remove trailing slashes for directory patterns
-                        if line.endswith("/"):
-                            line = line.rstrip("/")
+                        # if line.endswith("/"):
+                        #     line = line.rstrip("/")
                         patterns.add(line)
         except (IOError, OSError):
             # If we can't read .gitignore, return empty set
@@ -101,6 +101,7 @@ def grep(pattern):
             filtered_files.append(file_path)
 
     if not filtered_files:
-        return f"No files found matching pattern: {pattern}"
+        # return f"No files found matching pattern: {pattern}"
+        return []
 
     return [str(file.relative_to(root_path)) for file in sorted(filtered_files)]
