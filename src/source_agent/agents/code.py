@@ -6,13 +6,19 @@ from pathlib import Path
 
 class CodeAgent:
     def __init__(
-        self, api_key=None, base_url=None, provider=None, model=None, prompt=None
+        self,
+        api_key=None,
+        base_url=None,
+        provider=None,
+        model=None,
+        temperature=None,
+        prompt=None,
     ):
         self.api_key = api_key
         self.base_url = base_url
 
         self.model_string = "/".join([provider, model])
-        self.temperature = 0.3
+        self.temperature = temperature or 0.3
 
         self.messages = []
         self.prompt = prompt
@@ -24,8 +30,6 @@ class CodeAgent:
         )
 
         self.messages.append({"role": "system", "content": self.system_prompt})
-
-        self.run()
 
     def add_message(self, role, content):
         self.messages.append({"role": role, "content": content})
@@ -84,8 +88,7 @@ class CodeAgent:
 
     def should_stop(self, content: str):
         return any(
-            stop_token in content.lower()
-            for stop_token in ["<done>", "all tasks complete", "finished", "complete"]
+            stop_token in content.lower() for stop_token in ["<done>", "<complete>"]
         )
 
     def run_step(self, message):
