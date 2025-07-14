@@ -213,7 +213,7 @@ class CodeAgent:
         request = {
             "model": self.model_string,
             "temperature": self.temperature,
-            "tools": source_agent.tools.tools,
+            "tools": tools,
             "tool_choice": "auto",
             "messages": self.messages,
         }
