@@ -17,7 +17,6 @@ license     = "MIT"
 
 dependencies = [
     "openai",
-    "pyyaml",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +24,6 @@ developer = [
     "bandit",
     "black",
     "hatch",
-    "jinja2",
     "mypy",
     "pytest",
     "ruff",
