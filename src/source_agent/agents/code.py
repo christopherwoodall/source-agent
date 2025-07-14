@@ -184,6 +184,8 @@ class CodeAgent:
             "The user's prompt is:\n\n"
             f"{self.prompt}"
         )
+        # "You can think recursively.\n"
+        # "End your thoughts with a `<stop_thoughts>` tag.\n"
 
         completion = self.chat(message=step_1)
         response = self.handle_response(completion)
