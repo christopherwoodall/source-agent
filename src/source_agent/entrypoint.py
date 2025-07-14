@@ -39,8 +39,6 @@ def dispatch_agent(prompt):
         prompt=prompt,
     )
 
-    print(agent.greet())
-
 
 def main():
     parser = argparse.ArgumentParser(description="Simple coding agent.")
