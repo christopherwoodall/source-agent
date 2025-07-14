@@ -3,7 +3,7 @@
 # See: https://hynek.me/articles/testing-packaging/
 
 from . import tools, agents
-from .agents import Agent
+from .agents import code
 
 
-__all__ = ["agents", "Agent", "tools"]
+__all__ = ["agents", "code", "tools"]
