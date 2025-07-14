@@ -145,7 +145,7 @@ def main() -> int:
         "-v",
         "--verbose",
         action="store_true",
-        default=True,
+        default=False,
         help="Enable verbose logging",
     )
 
