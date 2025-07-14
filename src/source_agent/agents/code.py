@@ -2,108 +2,6 @@ import json
 import openai
 import source_agent
 from pathlib import Path
-from pyexpat.errors import messages
-
-
-# TODO - MOVE TOOLS
-def grep(pattern):
-    """
-    Recursive search for a pattern in a filename.
-    Args:
-        pattern (str): The pattern to search for.
-    Returns:
-        list: A list of files that match the pattern.
-    """
-    files = list(Path(".").glob(pattern))
-    if not files:
-        return f"No files found matching pattern: {pattern}"
-    return [str(file) for file in files]
-
-
-def cat(path):
-    """
-    Read the contents of a file.
-    Args:
-        path (str): The path to the file to read.
-    Returns:
-        str: The contents of the file.
-    """
-    return [Path(path).read_text()]
-
-
-def write(path, content):
-    """
-    Write content to a file.
-    Args:
-        path (str): The path to the file to write.
-        content (str): The content to write to the file.
-    """
-    Path(path).write_text(content)
-    return f"Content written to {path}"
-
-
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "grep",
-            "description": "Search for a file matching a pattern.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "pattern": {
-                        "type": "string",
-                        "description": "Python glob pattern to match files.",
-                        "default": "**/*.py",
-                    }
-                },
-                "required": ["pattern"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "cat",
-            "description": "Read the contents of a file.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "The path to the file to read.",
-                    }
-                },
-                "required": ["path"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "write",
-            "description": "Write content to a file.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "The path to the file to write.",
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "The content to write to the file.",
-                    },
-                },
-                "required": ["path", "content"],
-            },
-        },
-    },
-]
-
-
-# TODO - MOVE TOOLS
-TOOL_MAPPING = {"grep": grep, "cat": cat, "write": write}
 
 
 class CodeAgent:
@@ -159,7 +57,9 @@ class CodeAgent:
 
                 # Look up the correct tool locally, and call it with the provided arguments
                 # Other tools can be added without changing the agentic loop
-                tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                tool_response = source_agent.tools.plugins.registry.get_mapping()[
+                    tool_name
+                ](**tool_args)
 
                 self.messages.append(
                     {
@@ -211,7 +111,7 @@ class CodeAgent:
         request = {
             "model": self.model_string,
             "temperature": self.temperature,
-            "tools": tools,
+            "tools": source_agent.tools.plugins.registry.get_tools(),
             "tool_choice": "auto",
             "messages": self.messages,
         }
