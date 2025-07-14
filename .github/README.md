@@ -37,10 +37,3 @@ This project uses [OpenRouter](https://openrouter.ai/) to run the agent. You wil
 export OPENROUTER_API_KEY=your_api_key_here
 export OPENROUTER_BASE_URL=https://api.openrouter.ai/v1
 ```
-
----
-
-
-# Resources
-  - [Using OpenRouter with Python](https://openrouter.ai/docs/quickstart)
-  - [Agentic Patterns](https://agentic-patterns.com/)
