@@ -5,14 +5,39 @@ dynamically registered. Probably not a good idea...
 See docs: https://github.com/awwaiid/gremllm
 """
 
+from .plugins import registry
+
 from gremllm import Gremllm
 
-# Remind me to not shop at your store
-cart = Gremllm('shopping_cart')
-cart.add_item('apple', 1.50)
-cart.add_item('banana', 0.75)
-total = cart.calculate_total()
-print(f"Cart contents: {cart.contents_as_json()}")
-print(f"Cart total: {total}")
-cart.clear()
 
+@registry.register(
+    name="imagine",
+    description="Imagine a new tool and register it dynamically.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "description": "The name of the tool to imagine.",
+            },
+            "description": {
+                "type": "string",
+                "description": "A description of what the tool does.",
+            },
+            "parameters": {
+                "type": "object",
+                "description": "The parameters the tool accepts, in JSON schema format.",
+            },
+        },
+        "required": ["name", "description", "parameters"],
+    },
+)
+def imagine(name, description, parameters):
+    """
+    Imagine a new tool and register it dynamically.
+    """
+    tool = Gremllm(name)
+    tool.description = description
+    tool.parameters = parameters
+    registry.register_tool(tool)
+    return tool
