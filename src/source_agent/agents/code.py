@@ -24,106 +24,99 @@ class CodeAgent:
         )
 
         self.messages.append({"role": "system", "content": self.system_prompt})
-        # self.messages.append({"role": "user", "content": self.prompt})
 
-        self.process()
+        self.run()
+
+    def add_message(self, role, content):
+        self.messages.append({"role": role, "content": content})
+
+    def send(self):
+        return self.session.chat.completions.create(
+            model=self.model_string,
+            temperature=self.temperature,
+            tools=source_agent.tools.plugins.registry.get_tools(),
+            tool_choice="auto",
+            messages=self.messages,
+        )
+
+    def run(self):
+        # steps = [
+        #     (
+        #         "Analyze the user's prompt and determine what files need to be read.\n"
+        #         f"The user's prompt is:\n\n{self.prompt}"
+        #     ),
+        #     (
+        #         "Analyze the file contents and determine the intent of the user.\n"
+        #         "Develop a plan to address the user's request."
+        #     ),
+        # ]
+        # for step in steps:
+        #     self.run_step(step)
+        prompt = (
+            "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
+            "Stop when you have completed your analysis and clearly state you're done using the token <done>.\n"
+            f"The user's prompt is:\n\n{self.prompt}"
+        )
+        self.think_loop(prompt)
+
+    def think_loop(self, initial_prompt, max_steps=20):
+        self.add_message("user", initial_prompt)
+
+        # while True:
+        for _ in range(max_steps):
+            print("Thinking...")
+            # self.add_message("assistant", "Thinking...")
+            response = self.send()
+            choice = response.choices[0]
+            message = choice.message
+
+            self.messages.append(message)
+            print("Agent:", message.content)
+
+            # If the agent is using a tool, run it and loop again
+            if message.tool_calls:
+                self.run_tools_from_response(message.tool_calls)
+                continue
+
+            # Stop when the model decides it's done thinking
+            if self.should_stop(message.content):
+                break
+
+    def should_stop(self, content: str):
+        return any(
+            stop_token in content.lower()
+            for stop_token in ["<done>", "all tasks complete", "finished", "complete"]
+        )
+
+    def run_step(self, message):
+        self.add_message("user", message)
+        response = self.send()
+        self.handle_response(response)
 
     def handle_response(self, response):
-        """
-        Handle the response from the agent.
-        Args:
-            response (openai.ChatCompletion): The response from the agent.
-        Returns:
-            str: The content of the response message.
-        """
-        response = response.choices[0]
-        agent_message = response.message.content
+        choice = response.choices[0]
+        msg = choice.message
+        self.messages.append(msg)
+        print("Agent:", msg.content)
 
-        self.messages.append(response.message)
+        if msg.tool_calls:
+            self.run_tools_from_response(msg.tool_calls)
 
-        ##########
-        print("Response:", response)
-        print("Agent Message:", agent_message)
-        ##########
+    def run_tools_from_response(self, tool_calls):
+        mapping = source_agent.tools.plugins.registry.get_mapping()
 
-        ### TOOL USAGE EXAMPLE
-        tool_calls = response.message.tool_calls
+        for call in tool_calls:
+            tool_name = call.function.name
+            tool_args = json.loads(call.function.arguments)
+            result = mapping[tool_name](**tool_args)
 
-        if tool_calls:
-            for tool_call in tool_calls:
-                tool_name = tool_call.function.name
+            self.messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "name": tool_name,
+                    "content": json.dumps(result),
+                }
+            )
 
-                tool_args = json.loads(tool_call.function.arguments)
-
-                # Look up the correct tool locally, and call it with the provided arguments
-                # Other tools can be added without changing the agentic loop
-                tool_response = source_agent.tools.plugins.registry.get_mapping()[
-                    tool_name
-                ](**tool_args)
-
-                self.messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "name": tool_name,
-                        "content": json.dumps(tool_response),
-                    }
-                )
-
-                print(f"Tool call: {tool_name} with args: {tool_args}")
-                # print(f"Tool response: {tool_response}")
-
-    def process(self):
-        step_1 = (
-            "Analyze the user's prompt and determine what files need "
-            "to be read. Use the tools to your advantage.\n"
-            # "You can think recursively.\n"
-            # "Terminate thoughts with a `<stop_thoughts>` tag.\n"
-            "The user's prompt is:\n\n"
-            f"{self.prompt}"
-        )
-
-        completion = self.chat(message=step_1)
-        response = self.handle_response(completion)
-        print(response)
-
-        # TESTING
-        step_2 = (
-            "Analyze the file contents and determine the intent of the user.\n"
-            "Develop a plan to address the user's request.\n"
-        )
-        completion = self.chat(message=step_2)
-        response = self.handle_response(completion)
-        print(response)
-
-        # step_3 = (
-        #     "Generate code to address the user's request.\n"
-        #     "Write the new code in a file with the name 'new_code.py'.\n"
-        # )
-        # completion = self.chat(message=step_3)
-        # response = self.handle_response(completion)
-        # print(response)
-
-    def chat(self, message=None):
-        if message:
-            self.messages.append({"role": "user", "content": message})
-
-        request = {
-            "model": self.model_string,
-            "temperature": self.temperature,
-            "tools": source_agent.tools.plugins.registry.get_tools(),
-            "tool_choice": "auto",
-            "messages": self.messages,
-        }
-
-        response = self.session.chat.completions.create(**request)
-
-        return response
-
-    def greet(self):
-        return f"Hello, I am {self.model_string}."
-
-
-# Resources
-# - https://openrouter.ai/docs/features/tool-calling
-# - https://openrouter.ai/docs/api-reference/overview
+            print(f"Tool '{tool_name}' called with args: {tool_args}")
