@@ -24,7 +24,7 @@ Simple coding agent.
 ## Getting Started
 
 ```bash
-git clone [https://github.com/christopherwoodall/source-agent](https://github.com/christopherwoodall/source-agent)
+git clone https://github.com/christopherwoodall/source-agent
 cd source-agent
 pip install -e ".[developer]"
 
