@@ -1,6 +1,8 @@
 """
 The idea here is to let the agent hallucinate its own tools and have them
 dynamically registered. Probably not a good idea...
+
+See docs: https://github.com/awwaiid/gremllm
 """
 
 from gremllm import Gremllm
