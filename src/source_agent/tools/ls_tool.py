@@ -55,7 +55,7 @@ def ls(path: str = ".", recursive: bool = False) -> List[str]:
         dir_path = pathlib.Path(path).resolve()
 
         # Security: Prevent accessing above working directory
-        if not str(dir_path).startswith(str(cwd)):
+        if not dir_path.is_relative_to(cwd):
             return [f"Error: Path traversal detected - {path}"]
         if not dir_path.exists():
             return [f"Error: Directory not found - {path}"]
@@ -68,7 +68,7 @@ def ls(path: str = ".", recursive: bool = False) -> List[str]:
         iterator = dir_path.rglob("*") if recursive else dir_path.iterdir()
 
         for item in iterator:
-            rel_path = item.relative_to(dir_path)
+            # rel_path = item.relative_to(dir_path)
             if is_ignored(item, ignore_patterns, dir_path):
                 continue
             # Relative to cwd for consistent output

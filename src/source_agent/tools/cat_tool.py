@@ -1,4 +1,3 @@
-import os
 import pathlib
 from .plugins import registry
 
@@ -32,23 +31,23 @@ def cat(path):
         # Security: Check for path traversal
         cwd = pathlib.Path.cwd().resolve()
         if not str(file_path).startswith(str(cwd)):
-            return f"Error: Path traversal detected - {path}"
+            return [f"Error: Path traversal detected - {path}"]
 
         # Security: Check if file exists and is a regular file
         if not file_path.exists():
-            return f"Error: File not found - {path}"
+            return [f"Error: File not found - {path}"]
         if not file_path.is_file():
-            return f"Error: Path is not a file - {path}"
+            return [f"Error: Path is not a file - {path}"]
 
         # Security: Check file size (prevent reading huge files)
         max_size = 10 * 1024 * 1024  # 10MB limit
         if file_path.stat().st_size > max_size:
-            return f"Error: File too large (>10MB) - {path}"
+            return [f"Error: File too large (>10MB) - {path}"]
 
         # Security: Check for common dangerous file extensions
         dangerous_extensions = {".exe", ".dll", ".so", ".dylib", ".bin"}
         if file_path.suffix.lower() in dangerous_extensions:
-            return f"Error: Cannot read binary/executable files - {path}"
+            return [f"Error: Cannot read binary/executable files - {path}"]
 
         content = file_path.read_text(encoding="utf-8")
         return [content]
