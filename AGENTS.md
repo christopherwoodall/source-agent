@@ -32,7 +32,7 @@ Simulate three internal specialists:
 - When finished:
   - Append `<done>` to your response.
   - Write a clear summary of your actions to `CHANGELOG.md`.
-
+  
 ## Important Files
 - `pyproject.toml`: Project metadata and dependencies.
 - `src/`: Source code.
@@ -44,3 +44,4 @@ Simulate three internal specialists:
 - Do **not** repeat previous content unless relevant.
 - Do **not** speculate. Stick to code and facts.
 - Read relevant files for context.
+- Write a clear summary of your actions to `CHANGELOG.md`.
