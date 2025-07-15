@@ -69,7 +69,7 @@ def find(name: str, path: str = ".") -> List[str]:
     root = pathlib.Path(path).resolve()
     cwd = pathlib.Path.cwd().resolve()
 
-    if not str(root).startswith(str(cwd)):
+    if not root.is_relative_to(cwd):
         return [f"Error: Path traversal detected - {path}"]
     if not root.is_dir():
         return [f"Error: Not a directory - {path}"]
