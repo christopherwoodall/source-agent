@@ -19,8 +19,12 @@ def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
 
     Args:
         provider_name: The name of the AI provider.
+
     Returns:
         A tuple containing the API key and base URL for the provider.
+
+    Raises:
+        ValueError: If the provider is unknown or the API key is missing.
     """
     PROVIDER_KEYS = {
         "xai": "XAI_API_KEY",
@@ -67,9 +71,9 @@ def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
 
 def dispatch_agent(
     prompt: str,
-    provider: Optional[str] = "openrouter",
-    model: Optional[str] = "moonshotai/kimi-k2",
-    temperature: Optional[float] = 0.3,
+    provider: str = "openrouter",
+    model: str = "moonshotai/kimi-k2",
+    temperature: float = 0.3,
 ) -> str:
     """
     Dispatch the agent with the given prompt.
@@ -95,7 +99,6 @@ def dispatch_agent(
         agent = source_agent.agents.code.CodeAgent(
             api_key=api_key,
             base_url=provider_url,
-            provider=provider,
             model=model,
             prompt=prompt,
             temperature=temperature,
