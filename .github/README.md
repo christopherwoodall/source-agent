@@ -37,15 +37,7 @@ source-agent --prompt "Analyze this code base"
 
 **Advanced usage**
 ```bash
-source-agent --provider moonshotai --model kimi-k2 --temperature 0.3
-```
-
-**Environment Variables**
-This project uses [OpenRouter](https://openrouter.ai/) to run the agent. You will need to set both the `OPENROUTER_API_KEY` and `OPENROUTER_BASE_URL` environment variables.
-
-```bash
-export OPENROUTER_API_KEY=your_api_key_here
-export OPENROUTER_BASE_URL=https://api.openrouter.ai/v1
+source-agent --provider "openai" --model "gpt-4o"  --temperature 0.3
 ```
 
 ## Core Architecture
