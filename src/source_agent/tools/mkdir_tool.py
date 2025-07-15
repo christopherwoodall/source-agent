@@ -39,20 +39,12 @@ def mkdir(path: str, parents: bool = True, exist_ok: bool = True) -> List[str]:
     Returns:
         List[str]: A message indicating success or an error.
     """
-    try:
-        cwd = pathlib.Path.cwd().resolve()
-        dir_path = pathlib.Path(path).resolve()
+    cwd = pathlib.Path.cwd().resolve()
+    dir_path = pathlib.Path(path).resolve()
 
-        # Security: Prevent creating outside the working directory
-        if not str(dir_path).startswith(str(cwd)):
-            return [f"Error: Path traversal detected - {path}"]
+    # Security: Prevent creating outside the working directory
+    if not dir_path.is_relative_to(cwd):
+        return [f"Error: Path traversal detected - {path}"]
 
-        dir_path.mkdir(parents=parents, exist_ok=exist_ok)
-        return [f"Created directory: {dir_path.relative_to(cwd)}"]
-
-    except FileExistsError:
-        return [f"Error: Directory already exists - {path}"]
-    except PermissionError:
-        return [f"Error: Permission denied - {path}"]
-    except Exception as e:
-        return [f"Error: {str(e)}"]
+    dir_path.mkdir(parents=parents, exist_ok=exist_ok)
+    return [f"Created directory: {dir_path.relative_to(cwd)}"]

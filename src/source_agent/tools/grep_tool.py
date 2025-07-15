@@ -6,6 +6,15 @@ from .plugins import registry
 
 
 def load_gitignore_patterns(root: pathlib.Path) -> Set[str]:
+    """
+    Load .gitignore patterns from the given root directory.
+
+    Args:
+        root (pathlib.Path): The root directory to load .gitignore from.
+
+    Returns:
+        Set[str]: A set of ignore patterns.
+    """
     patterns = set()
     gitignore = root / ".gitignore"
     if gitignore.exists():
@@ -17,6 +26,17 @@ def load_gitignore_patterns(root: pathlib.Path) -> Set[str]:
 
 
 def is_ignored(path: pathlib.Path, patterns: Set[str], root: pathlib.Path) -> bool:
+    """
+    Check if the given path matches any of the ignore patterns.
+
+    Args:
+        path (pathlib.Path): The path to check.
+        patterns (Set[str]): The set of ignore patterns.
+        root (pathlib.Path): The root directory to check against.
+
+    Returns:
+        bool: True if the path is ignored, False otherwise.
+    """
     rel = path.relative_to(root).as_posix()
     parts = path.relative_to(root).parts
     for pattern in patterns:
