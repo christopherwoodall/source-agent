@@ -6,44 +6,77 @@ import source_agent
 from typing import Optional
 
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+# # Configure logging
+# logging.basicConfig(
+#     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# )
+# logger = logging.getLogger(__name__)
 
-# Configuration
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-DEFAULT_PROVIDER = os.getenv("SOURCE_AGENT_PROVIDER", "moonshotai")
-DEFAULT_MODEL = os.getenv("SOURCE_AGENT_MODEL", "kimi-k2")
-DEFAULT_TEMPERATURE = float(os.getenv("SOURCE_AGENT_TEMPERATURE", "0.3"))
+def get_provider(provider_name: str) -> tuple[str, str]:
+    """
+    Get the API key and base URL for the specified provider.
 
+    Args:
+        provider_name: The name of the AI provider.
+    Returns:
+        A tuple containing the API key and base URL for the provider.
+    """
+    PROVIDER_KEYS = {
+        "xai": "XAI_API_KEY",
+        "google": "GEMINI_API_KEY",
+        "google_vertex": "GOOGLE_VERTEX_API_KEY",
+        "openai": "OPENAI_API_KEY",
+        "anthropic": "ANTHROPIC_API_KEY",
+        "mistral": "MISTRAL_API_KEY",
+        "deepseek": "DEEPSEEK_API_KEY",
+        "cerebras": "CEREBRAS_API_KEY",
+        "groq": "GROQ_API_KEY",
+        "vercel": "VERCEL_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+    }
 
-def validate_environment() -> None:
-    """Validate that required environment variables are set."""
-    if not OPENROUTER_API_KEY:
-        logger.error("Missing OPENROUTER_API_KEY environment variable")
-        raise ValueError(
-            "Missing OPENROUTER_API_KEY environment variable. "
-            "Please set it before running the agent."
-        )
+    PROVIDER_BASE_URLS = {
+        "xai": "https://api.x.ai/v1",
+        "google": "https://generativelanguage.googleapis.com/v1beta",
+        "openai": "https://api.openai.com/v1",
+        "anthropic": "https://api.anthropic.com/v1",
+        "mistral": "https://api.mistral.ai/v1",
+        "deepseek": "https://api.deepseek.com/v1",
+        "cerebras": "https://api.cerebras.net/v1",
+        "groq": "https://api.groq.com/v1",
+        "vercel": "https://api.vercel.ai/v1",
+        "openrouter": "https://openrouter.ai/api/v1",
+    }
+
+    provider_key = PROVIDER_KEYS.get(provider_name.lower())
+    if not provider_key:
+        raise ValueError(f"Unknown provider: {provider_name}")
+
+    api_key = os.getenv(provider_key)
+    if not api_key:
+        raise ValueError(f"Missing API key for provider: {provider_name}")
+
+    base_url = PROVIDER_BASE_URLS.get(provider_name.lower())
+    if not base_url:
+        raise ValueError(f"Missing base URL for provider: {provider_name}")
+
+    return api_key, base_url
 
 
 def dispatch_agent(
     prompt: str,
-    provider: Optional[str] = None,
-    model: Optional[str] = None,
-    temperature: Optional[float] = None,
+    provider: Optional[str] = "openrouter",
+    model: Optional[str] = "moonshotai/kimi-k2",
+    temperature: Optional[float] = 0.3,
 ) -> str:
     """
     Dispatch the agent with the given prompt.
 
     Args:
         prompt: The prompt to send to the agent.
-        provider: The AI provider to use (overrides default).
-        model: The model to use (overrides default).
-        temperature: The temperature for the model (overrides default).
+        provider: The AI provider to use.
+        model: The model to use.
+        temperature: The temperature for the model.
 
     Returns:
         The response from the agent.
@@ -51,21 +84,15 @@ def dispatch_agent(
     Raises:
         Exception: If agent execution fails.
     """
-    logger.info("Starting Source Agent")
-
-    # Use provided values or fall back to defaults
-    provider = provider or DEFAULT_PROVIDER
-    model = model or DEFAULT_MODEL
-    temperature = temperature or DEFAULT_TEMPERATURE
-
-    logger.info(
-        f"Using provider: {provider}, model: {model}, temperature: {temperature}"
-    )
+    print("Starting Source Agent")
+    print(f"Using provider: {provider}, model: {model}, temperature: {temperature}")
 
     try:
+        api_key, provider_url = get_provider(provider)
+        
         agent = source_agent.agents.code.CodeAgent(
-            api_key=OPENROUTER_API_KEY,
-            base_url=OPENROUTER_BASE_URL,
+            api_key=api_key,
+            base_url=provider_url,
             provider=provider,
             model=model,
             prompt=prompt,
@@ -73,15 +100,16 @@ def dispatch_agent(
         )
 
         result = agent.run()
-        logger.info("Agent execution completed successfully")
+        print("Agent execution completed successfully")
         return result
 
     except Exception as e:
-        logger.error(f"Agent execution failed: {str(e)}")
+        # logger.error(f"Agent execution failed: {str(e)}")
+        print(f"Agent execution failed: {str(e)}")
         raise
 
 
-def validate_prompt(prompt: str) -> str:
+def validate_prompt(prompt: str, max_length: int = 10000) -> str:
     """
     Validate and sanitize the prompt.
 
@@ -94,15 +122,13 @@ def validate_prompt(prompt: str) -> str:
     Raises:
         ValueError: If prompt is invalid.
     """
-    if not prompt:
-        raise ValueError("Prompt cannot be empty")
-
     prompt = prompt.strip()
     if not prompt:
         raise ValueError("Prompt cannot be empty or whitespace only")
 
-    if len(prompt) > 10000:  # Reasonable upper limit
-        raise ValueError("Prompt is too long (max 10000 characters)")
+    # Reasonable upper limit
+    if len(prompt) > max_length: 
+        raise ValueError(f"Prompt is too long (max {max_length} characters)")
 
     return prompt
 
@@ -125,21 +151,21 @@ def main() -> int:
     parser.add_argument(
         "--provider",
         type=str,
-        default=DEFAULT_PROVIDER,
-        choices=[DEFAULT_PROVIDER, "other_provider"],
-        help=f"AI provider to use (default: {DEFAULT_PROVIDER})",
+        default="openrouter",
+        choices=["openrouter", "openai", "google", "anthropic", "mistral", "deepseek", "cerebras", "groq", "vercel", "xai"],
+        help=f"AI provider to use (default: openrouter)",
     )
     parser.add_argument(
         "--model",
         type=str,
-        default=DEFAULT_MODEL,
-        help=f"Model to use (default: {DEFAULT_MODEL})",
+        default="moonshotai/kimi-k2",
+        help=f"Model to use (default: moonshotai/kimi-k2)",
     )
     parser.add_argument(
         "--temperature",
         type=float,
-        default=DEFAULT_TEMPERATURE,
-        help=f"Temperature for the model (default: {DEFAULT_TEMPERATURE})",
+        default=0.3,
+        help=f"Temperature for the model (default: 0.3)",
     )
     parser.add_argument(
         "-v",
@@ -152,11 +178,8 @@ def main() -> int:
     try:
         args = parser.parse_args()
 
-        if args.verbose:
-            logging.getLogger().setLevel(logging.DEBUG)
-
-        # Validate environment
-        validate_environment()
+        # if args.verbose:
+        #     logging.getLogger().setLevel(logging.DEBUG)
 
         # Validate prompt
         prompt = validate_prompt(args.prompt)
@@ -173,14 +196,14 @@ def main() -> int:
         return 0
 
     except KeyboardInterrupt:
-        logger.info("Operation cancelled by user")
+        print("Operation cancelled by user")
         return 130  # Standard exit code for SIGINT
     except ValueError as e:
-        logger.error(f"Validation error: {e}")
+        # logger.error(f"Validation error: {e}")
         print(f"Error: {e}", file=sys.stderr)
         return 1
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        # logger.error(f"Unexpected error: {e}")
         print(f"Error: {e}", file=sys.stderr)
         return 1
 

@@ -16,8 +16,8 @@ class CodeAgent:
     ):
         self.api_key = api_key
         self.base_url = base_url
+        self.model = model
 
-        self.model_string = "/".join([provider, model])
         self.temperature = temperature or 0.3
 
         self.messages = []
@@ -36,7 +36,7 @@ class CodeAgent:
 
     def send(self):
         return self.session.chat.completions.create(
-            model=self.model_string,
+            model=self.model,
             temperature=self.temperature,
             tools=source_agent.tools.plugins.registry.get_tools(),
             tool_choice="auto",
@@ -63,7 +63,21 @@ class CodeAgent:
         )
         self.think_loop(prompt)
 
-    def think_loop(self, initial_prompt, max_steps=20):
+    # def run_step(self, message):
+    #     self.add_message("user", message)
+    #     response = self.send()
+    #     self.handle_response(response)
+
+    # def handle_response(self, response):
+    #     choice = response.choices[0]
+    #     msg = choice.message
+    #     self.messages.append(msg)
+    #     print("Agent:", msg.content)
+
+    #     if msg.tool_calls:
+    #         self.run_tools_from_response(msg.tool_calls)
+
+    def think_loop(self, initial_prompt, max_steps=50):
         self.add_message("user", initial_prompt)
 
         # while True:
@@ -83,27 +97,11 @@ class CodeAgent:
                 continue
 
             # Stop when the model decides it's done thinking
-            if self.should_stop(message.content):
+            if any(
+                stop_token in message.content.lower()
+                for stop_token in ["<done>", "<complete>"]
+            ):
                 break
-
-    def should_stop(self, content: str):
-        return any(
-            stop_token in content.lower() for stop_token in ["<done>", "<complete>"]
-        )
-
-    def run_step(self, message):
-        self.add_message("user", message)
-        response = self.send()
-        self.handle_response(response)
-
-    def handle_response(self, response):
-        choice = response.choices[0]
-        msg = choice.message
-        self.messages.append(msg)
-        print("Agent:", msg.content)
-
-        if msg.tool_calls:
-            self.run_tools_from_response(msg.tool_calls)
 
     def run_tools_from_response(self, tool_calls):
         mapping = source_agent.tools.plugins.registry.get_mapping()
