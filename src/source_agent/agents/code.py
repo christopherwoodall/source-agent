@@ -30,18 +30,6 @@ class CodeAgent:
 
         self.messages.append({"role": "system", "content": self.system_prompt})
 
-    def add_message(self, role, content):
-        self.messages.append({"role": role, "content": content})
-
-    def send(self):
-        return self.session.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            tools=source_agent.tools.plugins.registry.get_tools(),
-            tool_choice="auto",
-            messages=self.messages,
-        )
-
     def run(self):
         prompt = (
             "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
@@ -73,6 +61,18 @@ class CodeAgent:
                 for stop_token in ["<done>", "<complete>"]
             ):
                 break
+
+    def add_message(self, role, content):
+        self.messages.append({"role": role, "content": content})
+
+    def send(self):
+        return self.session.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            tools=source_agent.tools.plugins.registry.get_tools(),
+            tool_choice="auto",
+            messages=self.messages,
+        )
 
     def run_tools_from_response(self, tool_calls):
         mapping = source_agent.tools.plugins.registry.get_mapping()
