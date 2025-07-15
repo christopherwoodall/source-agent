@@ -12,7 +12,8 @@ from typing import Optional
 # )
 # logger = logging.getLogger(__name__)
 
-def get_provider(provider_name: str) -> tuple[str, str]:
+
+def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
     """
     Get the API key and base URL for the specified provider.
 
@@ -38,6 +39,7 @@ def get_provider(provider_name: str) -> tuple[str, str]:
     PROVIDER_BASE_URLS = {
         "xai": "https://api.x.ai/v1",
         "google": "https://generativelanguage.googleapis.com/v1beta",
+        "google_vertex": "https://generativelanguage.googleapis.com/v1beta",
         "openai": "https://api.openai.com/v1",
         "anthropic": "https://api.anthropic.com/v1",
         "mistral": "https://api.mistral.ai/v1",
@@ -89,7 +91,7 @@ def dispatch_agent(
 
     try:
         api_key, provider_url = get_provider(provider)
-        
+
         agent = source_agent.agents.code.CodeAgent(
             api_key=api_key,
             base_url=provider_url,
@@ -127,7 +129,7 @@ def validate_prompt(prompt: str, max_length: int = 10000) -> str:
         raise ValueError("Prompt cannot be empty or whitespace only")
 
     # Reasonable upper limit
-    if len(prompt) > max_length: 
+    if len(prompt) > max_length:
         raise ValueError(f"Prompt is too long (max {max_length} characters)")
 
     return prompt
@@ -152,7 +154,18 @@ def main() -> int:
         "--provider",
         type=str,
         default="openrouter",
-        choices=["openrouter", "openai", "google", "anthropic", "mistral", "deepseek", "cerebras", "groq", "vercel", "xai"],
+        choices=[
+            "openrouter",
+            "openai",
+            "google",
+            "anthropic",
+            "mistral",
+            "deepseek",
+            "cerebras",
+            "groq",
+            "vercel",
+            "xai",
+        ],
         help=f"AI provider to use (default: openrouter)",
     )
     parser.add_argument(
