@@ -94,7 +94,6 @@ def ls(path: str = ".", recursive: bool = False) -> List[str]:
     iterator = dir_path.rglob("*") if recursive else dir_path.iterdir()
 
     for item in iterator:
-        # rel_path = item.relative_to(dir_path)
         if is_ignored(item, ignore_patterns, dir_path):
             continue
         # Relative to cwd for consistent output
