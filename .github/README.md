@@ -14,10 +14,12 @@
 [release-url]: https://github.com/christopherwoodall/source-agent/actions/workflows/release.yml
 
 # Source Agent
-Simple coding agent.
+A simple coding agent.
 
 ## How it Works
 **Source Agent** operates as a stateless entity, guided by clear directives and external context. Its behavior is primarily defined by **`AGENTS.md`**, which serves as the core system prompt. **`CHANGELOG.md`** provides essential historical context and sense-making rationale. 
+
+![](docs/example.gif)
 
 ---
 
