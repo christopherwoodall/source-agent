@@ -23,26 +23,105 @@ A simple coding agent.
 
 ---
 
-## Usage
-**Installation**
+## Prerequisites
+- Python 3.10 or higher
+- An API key from one of the supported AI providers (see [Supported Providers](#supported-providers))
+- Git (for .gitignore support)
+
+---
+
+## Installation
+### Quick Start
 ```bash
+# Clone the repository
 git clone https://github.com/christopherwoodall/source-agent
 cd source-agent
-pip install --editable ".[developer]"
+
+# Create virtual environment (recommended)
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install in development mode
+pip install -e ".[developer]"
+
+# Verify the installation
+source-agent --help
 ```
 
-**Basic usage**
+### Basic Usage
 ```bash
-export OPENROUTER_API_KEY=your_key
-source-agent --prompt "Analyze this code base"
+# Analyze the current codebase
+source-agent --prompt "Analyze this codebase and identify potential improvements"
+
+# Analyze with specific focus
+source-agent --prompt "Review the authentication system for security issues"
 ```
 
-**Advanced usage**
+### Advanced Usage
 ```bash
-source-agent --provider "openai" --model "gpt-4o"  --temperature 0.3
+# Use OpenAI with GPT-4
+source-agent \
+  --provider openai \
+  --model gpt-4o \
+  --temperature 0.1 \
+  --prompt "Create unit tests for the utils.py file"
+
+# Use Claude for code review
+source-agent \
+  --provider anthropic \
+  --model claude-3-5-sonnet \
+  --prompt "Review the error handling in this codebase"
 ```
+
+---
+
+## Supported AI Providers
+
+Source Agent supports multiple AI providers. Set the corresponding environment variable:
+
+| Provider | Environment Variable | Default Model |
+|----------|---------------------|---------------|
+| OpenRouter | `OPENROUTER_API_KEY` | moonshotai/kimi-k2 |
+| OpenAI | `OPENAI_API_KEY` | gpt-4o |
+| Anthropic | `ANTHROPIC_API_KEY` | claude-3-5-sonnet |
+| Google | `GEMINI_API_KEY` | gemini-pro |
+| Mistral | `MISTRAL_API_KEY` | mistral-large |
+| DeepSeek | `DEEPSEEK_API_KEY` | deepseek-chat |
+| Cerebras | `CEREBRAS_API_KEY` | llama3.1-70b |
+| Groq | `GROQ_API_KEY` | llama3-70b |
+| Vercel | `VERCEL_API_KEY` | Various |
+| xAI | `XAI_API_KEY` | grok-beta |
+
+---
+
+## Available Tools
+Source Agent provides these built-in tools for code analysis:
+
+- **`ls`** - List files and directories (respects .gitignore)
+- **`cat`** - Read file contents with security checks
+- **`find`** - Find files by pattern (glob) in directory tree
+- **`grep`** - Search for text/regex in files
+- **`mkdir`** - Create directories
+- **`write`** - Write content to files
+
+These tools are automatically available to the AI agent during analysis.
+
+---
 
 ## Core Architecture
 - **Entry Point**: `src/source_agent/entrypoint.py` - CLI interface with argument parsing
 - **Agent Engine**: `src/source_agent/agents/code.py` - OpenAI-compatible client with tool integration
 - **System Prompt**: `AGENTS.md` - Defines agent behavior, roles, and constraints
+
+### Project Structure
+
+```
+source-agent/
+├── src/source_agent/
+│   ├── entrypoint.py      # CLI interface
+│   ├── agents/
+│   │   └── code.py        # Main agent logic
+│   └── tools/             # File system tools
+├── AGENTS.md              # System prompt & behavior rules
+└── CHANGELOG.md           # Development history
+```
