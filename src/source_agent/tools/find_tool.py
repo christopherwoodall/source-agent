@@ -1,7 +1,6 @@
 import fnmatch
 import pathlib
-from typing import List, Set
-
+from typing import Set, List
 from .plugins import registry
 
 
@@ -41,7 +40,7 @@ def is_ignored(path: pathlib.Path, patterns: Set[str], root: pathlib.Path) -> bo
                 "type": "string",
                 "description": "Root directory to search from.",
                 "default": ".",
-            }
+            },
         },
         "required": ["name"],
     },

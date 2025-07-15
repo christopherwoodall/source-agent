@@ -2,7 +2,6 @@ import re
 import fnmatch
 import pathlib
 from typing import Set, List
-
 from .plugins import registry
 
 

@@ -1,7 +1,6 @@
-import pathlib
 import fnmatch
+import pathlib
 from typing import Set, List
-
 from .plugins import registry
 
 
@@ -25,6 +24,7 @@ def is_ignored(path: pathlib.Path, patterns: Set[str], root: pathlib.Path) -> bo
         if fnmatch.fnmatch(rel, pattern):
             return True
     return False
+
 
 @registry.register(
     name="ls",
