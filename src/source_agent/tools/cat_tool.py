@@ -29,7 +29,7 @@ def cat(path):
 
     # Security: Check for path traversal
     cwd = pathlib.Path.cwd().resolve()
-    if not str(file_path).startswith(str(cwd)):
+    if not file_path.is_relative_to(cwd):
         return [f"Error: Path traversal detected - {path}"]
 
     # Security: Check if file exists and is a regular file
