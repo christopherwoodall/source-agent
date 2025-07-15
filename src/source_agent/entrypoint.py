@@ -93,25 +93,19 @@ def dispatch_agent(
     print("Starting Source Agent")
     print(f"Using provider: {provider}, model: {model}, temperature: {temperature}")
 
-    try:
-        api_key, provider_url = get_provider(provider)
+    api_key, provider_url = get_provider(provider)
 
-        agent = source_agent.agents.code.CodeAgent(
-            api_key=api_key,
-            base_url=provider_url,
-            model=model,
-            prompt=prompt,
-            temperature=temperature,
-        )
+    agent = source_agent.agents.code.CodeAgent(
+        api_key=api_key,
+        base_url=provider_url,
+        model=model,
+        prompt=prompt,
+        temperature=temperature,
+    )
 
-        result = agent.run()
-        print("Agent execution completed successfully")
-        return result
-
-    except Exception as e:
-        # logger.error(f"Agent execution failed: {str(e)}")
-        print(f"Agent execution failed: {str(e)}")
-        raise
+    result = agent.run()
+    print("Agent execution completed successfully")
+    return result
 
 
 def validate_prompt(prompt: str, max_length: int = 10000) -> str:
@@ -191,37 +185,24 @@ def main() -> int:
         help="Enable verbose logging",
     )
 
-    try:
-        args = parser.parse_args()
+    args = parser.parse_args()
 
-        # if args.verbose:
-        #     logging.getLogger().setLevel(logging.DEBUG)
+    # if args.verbose:
+    #     logging.getLogger().setLevel(logging.DEBUG)
 
-        # Validate prompt
-        prompt = validate_prompt(args.prompt)
+    # Validate prompt
+    prompt = validate_prompt(args.prompt)
 
-        # Run agent
-        result = dispatch_agent(
-            prompt=prompt,
-            provider=args.provider,
-            model=args.model,
-            temperature=args.temperature,
-        )
+    # Run agent
+    result = dispatch_agent(
+        prompt=prompt,
+        provider=args.provider,
+        model=args.model,
+        temperature=args.temperature,
+    )
 
-        print(result)
-        return 0
-
-    except KeyboardInterrupt:
-        print("Operation cancelled by user")
-        return 130  # Standard exit code for SIGINT
-    except ValueError as e:
-        # logger.error(f"Validation error: {e}")
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
-    except Exception as e:
-        # logger.error(f"Unexpected error: {e}")
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
+    print(result)
+    return 0
 
 
 if __name__ == "__main__":
