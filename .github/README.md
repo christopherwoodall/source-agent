@@ -79,18 +79,18 @@ source-agent \
 
 Source Agent supports multiple AI providers. Set the corresponding environment variable:
 
-| Provider | Environment Variable | Default Model |
-|----------|---------------------|---------------|
-| OpenRouter | `OPENROUTER_API_KEY` | moonshotai/kimi-k2 |
-| OpenAI | `OPENAI_API_KEY` | gpt-4o |
-| Anthropic | `ANTHROPIC_API_KEY` | claude-3-5-sonnet |
-| Google | `GEMINI_API_KEY` | gemini-pro |
-| Mistral | `MISTRAL_API_KEY` | mistral-large |
-| DeepSeek | `DEEPSEEK_API_KEY` | deepseek-chat |
-| Cerebras | `CEREBRAS_API_KEY` | llama3.1-70b |
-| Groq | `GROQ_API_KEY` | llama3-70b |
-| Vercel | `VERCEL_API_KEY` | Various |
-| xAI | `XAI_API_KEY` | grok-beta |
+| Provider | Environment Variable |
+|----------|---------------------|
+| OpenRouter | `OPENROUTER_API_KEY` |
+| OpenAI | `OPENAI_API_KEY` |
+| Anthropic | `ANTHROPIC_API_KEY` |
+| Google | `GEMINI_API_KEY` |
+| Mistral | `MISTRAL_API_KEY` |
+| DeepSeek | `DEEPSEEK_API_KEY` |
+| Cerebras | `CEREBRAS_API_KEY` |
+| Groq | `GROQ_API_KEY` |
+| Vercel | `VERCEL_API_KEY` |
+| xAI | `XAI_API_KEY` |
 
 ---
 
