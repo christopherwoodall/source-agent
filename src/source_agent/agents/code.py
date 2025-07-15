@@ -52,7 +52,6 @@ class CodeAgent:
 
             # If the agent is using a tool, run it and loop again
             if message.tool_calls:
-                print(message.tool_calls)
                 self.run_tools_from_response(message.tool_calls)
                 continue
 
