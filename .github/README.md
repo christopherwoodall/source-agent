@@ -14,26 +14,35 @@
 [release-url]: https://github.com/christopherwoodall/source-agent/actions/workflows/release.yml
 
 # Source Agent
-Simple coding agent.
+A simple coding agent.
 
 ## How it Works
 **Source Agent** operates as a stateless entity, guided by clear directives and external context. Its behavior is primarily defined by **`AGENTS.md`**, which serves as the core system prompt. **`CHANGELOG.md`** provides essential historical context and sense-making rationale. 
 
+![](docs/example.gif)
+
 ---
 
-## Getting Started
-
+## Usage
+**Installation**
 ```bash
-git clone [https://github.com/christopherwoodall/source-agent](https://github.com/christopherwoodall/source-agent)
+git clone https://github.com/christopherwoodall/source-agent
 cd source-agent
-pip install -e ".[developer]"
-
-source-agent --prompt "Analyze the file at src/source_agent/entrypoint.py and suggest any edits."
+pip install --editable ".[developer]"
 ```
 
-This project uses [OpenRouter](https://openrouter.ai/) to run the agent. You will need to set both the `OPENROUTER_API_KEY` and `OPENROUTER_BASE_URL` environment variables.
-
+**Basic usage**
 ```bash
-export OPENROUTER_API_KEY=your_api_key_here
-export OPENROUTER_BASE_URL=https://api.openrouter.ai/v1
+export OPENROUTER_API_KEY=your_key
+source-agent --prompt "Analyze this code base"
 ```
+
+**Advanced usage**
+```bash
+source-agent --provider "openai" --model "gpt-4o"  --temperature 0.3
+```
+
+## Core Architecture
+- **Entry Point**: `src/source_agent/entrypoint.py` - CLI interface with argument parsing
+- **Agent Engine**: `src/source_agent/agents/code.py` - OpenAI-compatible client with tool integration
+- **System Prompt**: `AGENTS.md` - Defines agent behavior, roles, and constraints

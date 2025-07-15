@@ -9,15 +9,14 @@ class CodeAgent:
         self,
         api_key=None,
         base_url=None,
-        provider=None,
         model=None,
         temperature=None,
         prompt=None,
     ):
         self.api_key = api_key
         self.base_url = base_url
+        self.model = model
 
-        self.model_string = "/".join([provider, model])
         self.temperature = temperature or 0.3
 
         self.messages = []
@@ -31,31 +30,7 @@ class CodeAgent:
 
         self.messages.append({"role": "system", "content": self.system_prompt})
 
-    def add_message(self, role, content):
-        self.messages.append({"role": role, "content": content})
-
-    def send(self):
-        return self.session.chat.completions.create(
-            model=self.model_string,
-            temperature=self.temperature,
-            tools=source_agent.tools.plugins.registry.get_tools(),
-            tool_choice="auto",
-            messages=self.messages,
-        )
-
     def run(self):
-        # steps = [
-        #     (
-        #         "Analyze the user's prompt and determine what files need to be read.\n"
-        #         f"The user's prompt is:\n\n{self.prompt}"
-        #     ),
-        #     (
-        #         "Analyze the file contents and determine the intent of the user.\n"
-        #         "Develop a plan to address the user's request."
-        #     ),
-        # ]
-        # for step in steps:
-        #     self.run_step(step)
         prompt = (
             "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
             "Stop when you have completed your analysis and clearly state you're done using the token <done>.\n"
@@ -63,13 +38,11 @@ class CodeAgent:
         )
         self.think_loop(prompt)
 
-    def think_loop(self, initial_prompt, max_steps=20):
+    def think_loop(self, initial_prompt, max_steps=50):
         self.add_message("user", initial_prompt)
 
-        # while True:
         for _ in range(max_steps):
             print("Thinking...")
-            # self.add_message("assistant", "Thinking...")
             response = self.send()
             choice = response.choices[0]
             message = choice.message
@@ -83,27 +56,23 @@ class CodeAgent:
                 continue
 
             # Stop when the model decides it's done thinking
-            if self.should_stop(message.content):
+            if any(
+                stop_token in message.content.lower()
+                for stop_token in ["<done>", "<complete>"]
+            ):
                 break
 
-    def should_stop(self, content: str):
-        return any(
-            stop_token in content.lower() for stop_token in ["<done>", "<complete>"]
+    def add_message(self, role, content):
+        self.messages.append({"role": role, "content": content})
+
+    def send(self):
+        return self.session.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            tools=source_agent.tools.plugins.registry.get_tools(),
+            tool_choice="auto",
+            messages=self.messages,
         )
-
-    def run_step(self, message):
-        self.add_message("user", message)
-        response = self.send()
-        self.handle_response(response)
-
-    def handle_response(self, response):
-        choice = response.choices[0]
-        msg = choice.message
-        self.messages.append(msg)
-        print("Agent:", msg.content)
-
-        if msg.tool_calls:
-            self.run_tools_from_response(msg.tool_calls)
 
     def run_tools_from_response(self, tool_calls):
         mapping = source_agent.tools.plugins.registry.get_mapping()
@@ -111,6 +80,9 @@ class CodeAgent:
         for call in tool_calls:
             tool_name = call.function.name
             tool_args = json.loads(call.function.arguments)
+
+            print(f"Tool '{tool_name}' called with args: {tool_args}")
+
             result = mapping[tool_name](**tool_args)
 
             self.messages.append(
@@ -121,5 +93,3 @@ class CodeAgent:
                     "content": json.dumps(result),
                 }
             )
-
-            print(f"Tool '{tool_name}' called with args: {tool_args}")
