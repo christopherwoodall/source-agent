@@ -75,7 +75,7 @@ source-agent \
 
 ---
 
-## Supported AI Providers
+## Supported Providers
 
 Source Agent supports multiple AI providers. Set the corresponding environment variable:
 
