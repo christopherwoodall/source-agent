@@ -72,4 +72,9 @@ def file_write_tool(path: str, content: str) -> dict:
                 temp_path.unlink()
             except:  # noqa: E722
                 pass
-        raise e
+        return {
+            "path": str(file_path),
+            "bytes_written": None,
+            "success": False,
+            "error": str(e),
+        }
