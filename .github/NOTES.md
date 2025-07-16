@@ -3,6 +3,7 @@
 ## Agents
   - https://github.com/Doriandarko/make-it-heavy
   - https://github.com/frdel/agent-zero
+  - https://github.com/kris-hansen/comanda
   - [Flowise - Build AI Agents, Visually](https://github.com/FlowiseAI/Flowise)
   - [AWS Multiagent AI Framework](https://github.com/awslabs/agent-squad)
   - [Google Agent Development Kit](https://github.com/google/adk-python)
