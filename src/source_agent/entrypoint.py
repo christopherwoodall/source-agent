@@ -78,8 +78,6 @@ def dispatch_agent(agent, prompt) -> str:
     Returns:
         The response from the agent.
     """
-    print("Starting Source Agent")
-
     user_prompt = (
         "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
         "Stop when you have completed your analysis.\n"
@@ -87,7 +85,6 @@ def dispatch_agent(agent, prompt) -> str:
     )
 
     result = agent.run(user_prompt=user_prompt)
-    print("Agent execution completed successfully")
 
     return result
 
@@ -106,7 +103,6 @@ def interactive_session(agent):
 
         # run full react loop
         agent.run()
-        print("\n🔚 Run completed.\n")
 
 
 def main() -> int:
