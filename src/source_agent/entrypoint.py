@@ -186,11 +186,13 @@ def main() -> int:
 
     if args.interactive:
         # Run in interactive mode
-        return interactive_session(agent)
+        interactive_session(agent)
 
     else:
         # Let the agent run autonomously
-        return dispatch_agent(agent=agent, prompt=args.prompt)
+        dispatch_agent(agent=agent, prompt=args.prompt)
+
+    return 0
 
 
 if __name__ == "__main__":
