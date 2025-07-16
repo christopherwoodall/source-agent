@@ -58,22 +58,28 @@ class CodeAgent:
             if message.tool_calls:
                 for tool_call in message.tool_calls:
                     print(f"🔧 Calling: {tool_call.function.name}")
-                    print(f"📝 Args: {tool_call.function.arguments}")
+                    # print(f"📝 Args: {tool_call.function.arguments}")
 
                     result = self.handle_tool_call(tool_call)
                     self.messages.append(result)
 
-                    print("✅ Result:", result)
+                    # print("✅ Result:", result)
 
-                    if tool_call.function.name == "task_mark_complete":
+                    # # TODO - Better message handling
+                    # if tool_call.function.name == "msg_final_answer":
+                    #     print("✅ Final answer received!")
+                    #     return result
+
+                    if tool_call.function.name == "msg_task_complete":
                         print("💯 Task marked complete!")
                         return result
-            else:
-                print("💭 No tools; continuing")
+            # else:
+            #     # print("💭 No tools; continuing")
+            #     pass
 
             print("\n" + "-" * 40 + "\n")
 
-        print("🚨 Max steps reached without task completion.")
+        # print("🚨 Max steps reached without task completion.")
         return {"error": "Max steps reached without task completion."}
 
     def handle_tool_call(self, tool_call):

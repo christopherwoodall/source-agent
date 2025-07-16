@@ -169,7 +169,6 @@ def main() -> int:
         help="Run in interactive step‑through mode",
     )
     parser.add_argument(
-        "-h",
         "--heavy",
         action="store_true",
         default=False,
