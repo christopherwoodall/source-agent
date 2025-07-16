@@ -38,7 +38,7 @@ class CodeAgent:
             api_key=self.api_key,
         )
 
-    def run(self, user_prompt: str = None, max_steps: int = 50):
+    def run(self, user_prompt: str = None, max_steps: int = 10):
         """
         If user_prompt is provided, seed it;
         otherwise assume messages already has the last user turn.
@@ -56,11 +56,11 @@ class CodeAgent:
             self.messages.append(message)
 
             if message.content:
-                print("🤖 Agent:", message.content)
+                print("🤖 Agent:", self._parse_message(message.content))
 
             if message.tool_calls:
                 for tool_call in message.tool_calls:
-                    if tool_call.function.name == "msg_task_complete":
+                    if tool_call.function.name == "msg_complete_tool":
                         print("💯 Task marked complete!")
                         return
 
@@ -72,6 +72,14 @@ class CodeAgent:
             print("-" * 40 + "\n")
 
         return {"error": "Max steps reached without task completion."}
+
+    def _parse_message(self, message):
+        if isinstance(message, str):
+            try:
+                message = json.loads(message)[0]["text"]
+            except json.JSONDecodeError:
+                pass
+        return message
 
     def handle_tool_call(self, tool_call):
         try:
