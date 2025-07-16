@@ -164,12 +164,6 @@ def main() -> int:
         default=False,
         help="Run in interactive step‑through mode",
     )
-    parser.add_argument(
-        "--heavy",
-        action="store_true",
-        default=False,
-        help="Enable heavy mode",
-    )
 
     args = parser.parse_args()
 
