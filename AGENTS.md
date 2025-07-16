@@ -29,19 +29,14 @@ Simulate three internal specialists:
 ## Output Format
 - Output executable code first.
 - Include minimal, relevant explanation if necessary.
-- When finished:
-  - Append `<done>` to your response.
-  - Write a clear summary of your actions to `CHANGELOG.md`.
-  
+- When finished append `<|done|>` to your response.
+
 ## Important Files
 - `pyproject.toml`: Project metadata and dependencies.
 - `src/`: Source code.
 - `.github/README.md`: Project overview.
-- `CHANGELOG.md`: Summarize completed work here when done.
 
 ## Rules
 - Do **not** modify files unless explicitly instructed.
 - Do **not** repeat previous content unless relevant.
 - Do **not** speculate. Stick to code and facts.
-- Read relevant files for context.
-- Write a clear summary of your actions to `CHANGELOG.md`.
