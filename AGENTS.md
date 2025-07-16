@@ -31,6 +31,7 @@ Simulate three internal specialists:
 - Include minimal, relevant explanation if necessary.
 - When you have fully satisfied the user's request and provided a complete answer,
   you MUST call the `task_mark_complete` tool with a summary of what was accomplished and a final message for the user. This signals that the task is finished.
+- Debrief the user before marking the task complete, ensuring they understand the changes made and any implications.
 
 ## Important Files
 - `pyproject.toml`: Project metadata and dependencies.
