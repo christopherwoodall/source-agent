@@ -37,6 +37,7 @@ developer = [
     "hatch",
     "mypy",
     "pytest",
+    "pytest-cov",
     "ruff",
 ]
 
