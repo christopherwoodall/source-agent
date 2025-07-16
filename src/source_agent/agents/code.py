@@ -49,7 +49,7 @@ class CodeAgent:
             self.messages.append({"role": "user", "content": user_prompt})
 
         for step in range(1, max_steps + 1):
-            print(f"🔄 Agent iteration {step}/{max_steps}")
+            print(f"🔄 Iteration {step}/{max_steps}")
             response = self.call_llm(self.messages)
 
             choice = response.choices[0]
