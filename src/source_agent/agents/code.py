@@ -9,8 +9,8 @@ from pathlib import Path
 
 class CodeAgent:
     DEFAULT_SYSTEM_PROMPT_PATH = "AGENTS.md"
-    MAX_STEPS = 10
-    MAX_RETRIES = 5
+    MAX_STEPS = 12
+    MAX_RETRIES = 3
     BACKOFF_BASE = 1.0
     BACKOFF_FACTOR = 2.0
     MAX_BACKOFF = 60.0
