@@ -51,8 +51,8 @@ def web_search_tool(query: str, max_results: int = 5) -> dict:
                     {
                         "title": result.get("title"),
                         "url": result.get("href"),
-                        "snippet": result.get("body"),
-                        "content": snippet,
+                        "snippet": snippet,
+                        "content": result.get("body"),
                     }
                 )
 
