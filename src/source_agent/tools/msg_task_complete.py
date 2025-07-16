@@ -9,33 +9,17 @@ from .tool_registry import registry
     parameters={
         "type": "object",
         "properties": {
-            "task_summary": {
-                "type": "string",
-                "description": "Brief summary of what was accomplished",
-            },
-            "completion_message": {
-                "type": "string",
-                "description": "Message to show the user indicating the task is complete",
-            },
         },
-        "required": ["task_summary", "completion_message"],
+        "required": [],
     },
 )
-def msg_task_complete(task_summary: str, completion_message: str) -> dict:
-    try:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def msg_task_complete() -> dict:
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        return {
-            "success": True,
-            "content": {
-                "status": "completed",
-                "task_summary": task_summary,
-                "completion_message": completion_message,
-                "timestamp": timestamp,
-            },
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "content": [f"Failed to mark task complete: {str(e)}"],
-        }
+    return {
+        "success": True,
+        "content": {
+            "status": "completed",
+            "timestamp": timestamp,
+        },
+    }
