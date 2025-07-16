@@ -97,12 +97,16 @@ Source Agent supports multiple AI providers. Set the corresponding environment v
 ## Available Tools
 Source Agent provides these built-in tools for code analysis:
 
-- **`ls`** - List files and directories (respects .gitignore)
-- **`cat`** - Read file contents with security checks
-- **`find`** - Find files by pattern (glob) in directory tree
-- **`grep`** - Search for text/regex in files
-- **`mkdir`** - Create directories
-- **`write`** - Write content to files
+- **file_list_tool** - List files/directories in a given path (respects .gitignore)
+- **file_read_tool** - Read contents of any file
+- **file_write_tool** - Write content to a file (creates/overwrites)
+- **file_delete_tool** - Safely delete a file
+- **file_search_tool** - Search files by name pattern and optionally search within files using text/regex
+- **directory_create_tool** - Create directories (with optional parent creation)
+- **directory_delete_tool** - Safely delete directories (recursive option available)
+- **calculate_expression** - Evaluate mathematical expressions (supports sqrt, pi, etc.)
+- **web_search_tool** - Search the web using DuckDuckGo (returns snippets and optional page content)
+- **task_mark_complete** - REQUIRED tool to signal task completion and exit the agent loop
 
 These tools are automatically available to the AI agent during analysis.
 
