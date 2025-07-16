@@ -1,9 +1,7 @@
 import os
 import sys
-import logging
 import argparse
 import source_agent
-from typing import Optional
 
 
 # # Configure logging
@@ -163,19 +161,19 @@ def main() -> int:
             "vercel",
             "xai",
         ],
-        help=f"AI provider to use (default: openrouter)",
+        help="AI provider to use (default: openrouter)",
     )
     parser.add_argument(
         "--model",
         type=str,
         default="moonshotai/kimi-k2",
-        help=f"Model to use (default: moonshotai/kimi-k2)",
+        help="Model to use (default: moonshotai/kimi-k2)",
     )
     parser.add_argument(
         "--temperature",
         type=float,
         default=0.3,
-        help=f"Temperature for the model (default: 0.3)",
+        help="Temperature for the model (default: 0.3)",
     )
     parser.add_argument(
         "-v",
