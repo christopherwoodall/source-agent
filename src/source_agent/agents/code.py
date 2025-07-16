@@ -1,3 +1,4 @@
+import re
 import json
 import time
 import openai
@@ -61,7 +62,7 @@ class CodeAgent:
             if message.tool_calls:
                 for tool_call in message.tool_calls:
                     if tool_call.function.name == "msg_complete_tool":
-                        print("💯 Task marked complete!")
+                        print("💯 Task marked complete!\n")
                         return
 
                     print(f"🔧 Calling: {tool_call.function.name}")
@@ -74,11 +75,14 @@ class CodeAgent:
         return {"error": "Max steps reached without task completion."}
 
     def _parse_message(self, message):
-        if isinstance(message, str):
-            try:
-                message = json.loads(message)[0]["text"]
-            except json.JSONDecodeError:
-                pass
+        pattern = r"(\{[^}]*'type'\s*:\s*'text'[^}]*\})"
+        match = re.search(pattern, message, re.DOTALL)
+        try:
+            if match:
+                message = match.group(0).replace("'", '"')
+                message = json.loads(message)["text"]
+        except:  # noqa: E722
+            pass
         return message
 
     def handle_tool_call(self, tool_call):
