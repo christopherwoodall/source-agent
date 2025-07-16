@@ -8,8 +8,7 @@ from .tool_registry import registry
     description="REQUIRED: Call this tool when the user's original request has been fully satisfied and you have provided a complete answer. This signals task completion and exits the agent loop.",
     parameters={
         "type": "object",
-        "properties": {
-        },
+        "properties": {},
         "required": [],
     },
 )
