@@ -9,7 +9,7 @@ heavy-agent = "source_agent.heavy:main"
 
 [project]
 requires-python = ">=3.10"
-version = "0.0.12"
+version = "0.0.13"
 name        = "source-agent"
 description = "Simple coding agent."
 readme      = ".github/README.md"
