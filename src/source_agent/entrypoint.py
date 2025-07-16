@@ -3,7 +3,7 @@ import argparse
 import source_agent
 
 
-def run_noninteractive_mode(agent, prompt) -> str:
+def run_prompt_mode(agent, prompt) -> str:
     """
     Dispatch the agent with the given prompt.
 
@@ -119,7 +119,7 @@ def main() -> int:
 
     else:
         # Let the agent run autonomously
-        run_noninteractive_mode(agent=agent, prompt=args.prompt)
+        run_prompt_mode(agent=agent, prompt=args.prompt)
 
     return 0
 
