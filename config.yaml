@@ -1,6 +1,6 @@
 orchestrator:
-  parallel_agents: 4
-  task_timeout: 60
+  parallel_agents: 2
+  task_timeout: 300
   aggregation_strategy: consensus
   question_generation_prompt: |
     Generate {num_agents} JSON-array questions to explore: "{user_input}"
