@@ -1,6 +1,6 @@
 import os
-from dataclasses import dataclass
 from typing import Dict
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -12,8 +12,12 @@ class ProviderConfig:
 PROVIDERS: Dict[str, ProviderConfig] = {
     "openrouter": ProviderConfig("OPENROUTER_API_KEY", "https://openrouter.ai/api/v1"),
     "openai": ProviderConfig("OPENAI_API_KEY", "https://api.openai.com/v1"),
-    "google": ProviderConfig("GEMINI_API_KEY", "https://generativelanguage.googleapis.com/v1beta"),
-    "google_vertex": ProviderConfig("GOOGLE_VERTEX_API_KEY", "https://generativelanguage.googleapis.com/v1beta"),
+    "google": ProviderConfig(
+        "GEMINI_API_KEY", "https://generativelanguage.googleapis.com/v1beta"
+    ),
+    "google_vertex": ProviderConfig(
+        "GOOGLE_VERTEX_API_KEY", "https://generativelanguage.googleapis.com/v1beta"
+    ),
     "anthropic": ProviderConfig("ANTHROPIC_API_KEY", "https://api.anthropic.com/v1"),
     "mistral": ProviderConfig("MISTRAL_API_KEY", "https://api.mistral.ai/v1"),
     "deepseek": ProviderConfig("DEEPSEEK_API_KEY", "https://api.deepseek.com/v1"),
