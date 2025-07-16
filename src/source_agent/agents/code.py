@@ -10,86 +10,110 @@ class CodeAgent:
         api_key=None,
         base_url=None,
         model=None,
-        temperature=None,
+        temperature=0.3,
         prompt=None,
     ):
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
 
-        self.temperature = temperature or 0.3
+        self.temperature = temperature
 
         self.messages = []
         self.prompt = prompt
         self.system_prompt = Path("AGENTS.md").read_text(encoding="utf-8")
+        self.user_prompt = (
+            "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
+            "Stop when you have completed your analysis.\n"
+            f"The user's prompt is:\n\n{self.prompt}"
+        )
 
+        # Initialize system and user messages
+        self.messages.append({"role": "system", "content": self.system_prompt})
+        self.messages.append({"role": "user", "content": self.user_prompt})
+
+        # Load tools from the registry
+        self.tools = source_agent.tools.tool_registry.registry.get_tools()
+        self.tool_mapping = source_agent.tools.tool_registry.registry.get_mapping()
+
+        # Initialize session
         self.session = openai.OpenAI(
             base_url=self.base_url,
             api_key=self.api_key,
         )
 
-        self.messages.append({"role": "system", "content": self.system_prompt})
+    def run(self, max_steps=50):
+        for step in range(max_steps):
+            print(f"🔄 Agent iteration {step}/{max_steps}")
 
-    def run(self):
-        prompt = (
-            "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
-            "Stop when you have completed your analysis and clearly state you're done using the token <done>.\n"
-            f"The user's prompt is:\n\n{self.prompt}"
-        )
-        self.think_loop(prompt)
+            response = self.send(self.messages)
 
-    def think_loop(self, initial_prompt, max_steps=50):
-        self.add_message("user", initial_prompt)
-
-        for _ in range(max_steps):
-            print("Thinking...")
-            response = self.send()
             choice = response.choices[0]
             message = choice.message
-
             self.messages.append(message)
-            print("Agent:", message.content)
+
+            print("🤖 Agent:", message.content)
 
             # If the agent is using a tool, run it and loop again
             if message.tool_calls:
-                self.run_tools_from_response(message.tool_calls)
-                continue
+                for tool_call in message.tool_calls:
+                    print(f"🔧 Calling: {tool_call.function.name}")
+                    print(f"📝 Args: {tool_call.function.arguments}")
 
-            # Stop when the model decides it's done thinking
-            if any(
-                stop_token in message.content.lower()
-                for stop_token in ["<done>", "<complete>"]
-            ):
-                break
+                    result = self.handle_tool_call(tool_call)
+                    self.messages.append(result)
 
-    def add_message(self, role, content):
-        self.messages.append({"role": role, "content": content})
+                    print(f"✅ Result: {result}")
 
-    def send(self):
+                    # Check if this was the task completion tool
+                    if tool_call.function.name == "task_mark_complete":
+                        print("💯 Task marked complete!")
+                        return result
+            else:
+                print("💭 Agent responded without tool calls - continuing loop")
+
+            print(f"\n{'-'*40}\n")
+
+        print(
+            "🚨 Max steps reached without task completion"
+            " - consider refining the prompt or tools."
+        )
+
+        return {"error": "Max steps reached without task completion."}
+
+    def handle_tool_call(self, tool_call):
+        try:
+            tool_name = tool_call.function.name
+            tool_args = json.loads(tool_call.function.arguments)
+
+            if tool_name in self.tool_mapping:
+                func = self.tool_mapping[tool_name]
+                result = func(**tool_args)
+            else:
+                # print(f"❌ Function {tool_name} not found")
+                result = {"error": f"Unknown tool: {tool_name}"}
+
+            return {
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "name": tool_name,
+                "content": json.dumps(result),
+            }
+
+        except Exception as e:
+            print(f"❌ Error executing tool {tool_name}: {str(e)}")
+            return {
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "name": tool_name,
+                "content": json.dumps({"error": f"Tool execution failed: {str(e)}"}),
+            }
+
+    def send(self, messages):
         return self.session.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
-            tools=source_agent.tools.plugins.registry.get_tools(),
+            tools=self.tools,
             tool_choice="auto",
-            messages=self.messages,
+            messages=messages,
         )
-
-    def run_tools_from_response(self, tool_calls):
-        mapping = source_agent.tools.plugins.registry.get_mapping()
-
-        for call in tool_calls:
-            tool_name = call.function.name
-            tool_args = json.loads(call.function.arguments)
-
-            print(f"Tool '{tool_name}' called with args: {tool_args}")
-
-            result = mapping[tool_name](**tool_args)
-
-            self.messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": call.id,
-                    "name": tool_name,
-                    "content": json.dumps(result),
-                }
-            )

@@ -27,15 +27,6 @@ default: $(.DEFAULT_GOAL)
 all: help
 
 
-define Bandit
-	bandit                  \
-		-v                  \
-		-f txt              \
-		-r $1               \
-		-c "pyproject.toml"
-endef
-
-
 .PHONY: help
 help: ## List commands <default>
 -	echo -e "USAGE: make \033[36m[COMMAND]\033[0m\n"
@@ -53,7 +44,7 @@ build: ## Build the application
 
 .PHONY: run
 run: ## Run the application
--	scenario-lab
+-	source-agent
 
 
 .PHONY: lint
@@ -64,9 +55,27 @@ lint: ## Lint the code
 
 .PHONY: bandit
 bandit: ## Run bandit
--	$(call Bandit,./src)
-
+-	bandit --config $(PROJECT_DIR)/pyproject.toml --recursive . --verbose
+# -	bandit --config $(PROJECT_DIR)/pyproject.toml --recursive . --verbose --format html --output bandit_report.html
 
 .PHONY: test
 test: ## Run the tests
 -	pytest -s
+
+
+.PHONY: test-tools
+test-tools: ## Run tool CRUDE tests
+# CREATE
+-	source-agent --prompt "create a directory called 'test'"
+# READ
+-	source-agent --prompt "summarize the project readme"
+-	source-agent --prompt "list all files in the project root directory" 
+-	source-agent --prompt "find all the files that import 'registry'" 
+# UPDATE
+-	source-agent --prompt "write the words 'test' to a file named 'test/testing.txt'"
+# DELETE
+-	source-agent --prompt "delete the file 'test/testing.txt'"
+-	source-agent --prompt "delete the directory 'test'"
+# EXECUTE
+-	source-agent --prompt "calculate (9+1)*6/2"
+-	source-agent --prompt "search the web for how to create a virtual environment with 'uv'" 

@@ -1,10 +1,9 @@
 import pathlib
-from typing import List
-from .plugins import registry
+from .tool_registry import registry
 
 
 @registry.register(
-    name="mkdir",
+    name="directory_create_tool",
     description="Create a directory at the given path.",
     parameters={
         "type": "object",
@@ -27,7 +26,9 @@ from .plugins import registry
         "required": ["path"],
     },
 )
-def mkdir(path: str, parents: bool = True, exist_ok: bool = True) -> List[str]:
+def directory_create_tool(
+    path: str, parents: bool = True, exist_ok: bool = True
+) -> dict:
     """
     Create a directory with safety and options.
 
@@ -37,14 +38,21 @@ def mkdir(path: str, parents: bool = True, exist_ok: bool = True) -> List[str]:
         exist_ok (bool): Whether it's okay if the directory already exists.
 
     Returns:
-        List[str]: A message indicating success or an error.
+        dict: A dictionary containing the directory path and success status.
     """
     cwd = pathlib.Path.cwd().resolve()
     dir_path = pathlib.Path(path).resolve()
 
     # Security: Prevent creating outside the working directory
     if not dir_path.is_relative_to(cwd):
-        return [f"Error: Path traversal detected - {path}"]
+        return {
+            "path": str(path),
+            "success": False,
+            "error": f"Path traversal detected - {path}",
+        }
 
     dir_path.mkdir(parents=parents, exist_ok=exist_ok)
-    return [f"Created directory: {dir_path.relative_to(cwd)}"]
+    return {
+        "path": str(dir_path.relative_to(cwd)),
+        "success": True,
+    }
