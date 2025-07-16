@@ -1,4 +1,27 @@
 import os
+from dataclasses import dataclass
+from typing import Dict
+
+
+@dataclass(frozen=True)
+class ProviderConfig:
+    env_var: str
+    base_url: str
+
+
+PROVIDERS: Dict[str, ProviderConfig] = {
+    "openrouter": ProviderConfig("OPENROUTER_API_KEY", "https://openrouter.ai/api/v1"),
+    "openai": ProviderConfig("OPENAI_API_KEY", "https://api.openai.com/v1"),
+    "google": ProviderConfig("GEMINI_API_KEY", "https://generativelanguage.googleapis.com/v1beta"),
+    "google_vertex": ProviderConfig("GOOGLE_VERTEX_API_KEY", "https://generativelanguage.googleapis.com/v1beta"),
+    "anthropic": ProviderConfig("ANTHROPIC_API_KEY", "https://api.anthropic.com/v1"),
+    "mistral": ProviderConfig("MISTRAL_API_KEY", "https://api.mistral.ai/v1"),
+    "deepseek": ProviderConfig("DEEPSEEK_API_KEY", "https://api.deepseek.com/v1"),
+    "cerebras": ProviderConfig("CEREBRAS_API_KEY", "https://api.cerebras.net/v1"),
+    "groq": ProviderConfig("GROQ_API_KEY", "https://api.groq.com/v1"),
+    "vercel": ProviderConfig("VERCEL_API_KEY", "https://api.vercel.ai/v1"),
+    "xai": ProviderConfig("XAI_API_KEY", "https://api.x.ai/v1"),
+}
 
 
 def get(provider_name: str = "openrouter") -> tuple[str, str]:
@@ -14,44 +37,20 @@ def get(provider_name: str = "openrouter") -> tuple[str, str]:
     Raises:
         ValueError: If the provider is unknown or the API key is missing.
     """
-    provider_keys = {
-        "xai": "XAI_API_KEY",
-        "google": "GEMINI_API_KEY",
-        "google_vertex": "GOOGLE_VERTEX_API_KEY",
-        "openai": "OPENAI_API_KEY",
-        "anthropic": "ANTHROPIC_API_KEY",
-        "mistral": "MISTRAL_API_KEY",
-        "deepseek": "DEEPSEEK_API_KEY",
-        "cerebras": "CEREBRAS_API_KEY",
-        "groq": "GROQ_API_KEY",
-        "vercel": "VERCEL_API_KEY",
-        "openrouter": "OPENROUTER_API_KEY",
-    }
+    normalized_name = provider_name.lower()
+    config = PROVIDERS.get(normalized_name)
 
-    provider_base_urls = {
-        "xai": "https://api.x.ai/v1",
-        "google": "https://generativelanguage.googleapis.com/v1beta",
-        "google_vertex": "https://generativelanguage.googleapis.com/v1beta",
-        "openai": "https://api.openai.com/v1",
-        "anthropic": "https://api.anthropic.com/v1",
-        "mistral": "https://api.mistral.ai/v1",
-        "deepseek": "https://api.deepseek.com/v1",
-        "cerebras": "https://api.cerebras.net/v1",
-        "groq": "https://api.groq.com/v1",
-        "vercel": "https://api.vercel.ai/v1",
-        "openrouter": "https://openrouter.ai/api/v1",
-    }
+    if not config:
+        available = ", ".join(PROVIDERS.keys())
+        raise ValueError(
+            f"Unknown provider: '{provider_name}'. Available providers are: {available}"
+        )
 
-    provider_key = provider_keys.get(provider_name.lower())
-    if not provider_key:
-        raise ValueError(f"Unknown provider: {provider_name}")
-
-    api_key = os.getenv(provider_key)
+    api_key = os.getenv(config.env_var)
     if not api_key:
-        raise ValueError(f"Missing API key for provider: {provider_name}")
+        raise ValueError(
+            f"Missing API key for provider '{provider_name}'. "
+            f"Set the environment variable: {config.env_var}"
+        )
 
-    base_url = provider_base_urls.get(provider_name.lower())
-    if not base_url:
-        raise ValueError(f"Missing base URL for provider: {provider_name}")
-
-    return api_key, base_url
+    return api_key, config.base_url
