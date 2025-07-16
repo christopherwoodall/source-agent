@@ -13,7 +13,6 @@ class CodeAgent:
         base_url=None,
         model=None,
         temperature=0.3,
-        prompt=None,
     ):
         self.api_key = api_key
         self.base_url = base_url
@@ -25,17 +24,9 @@ class CodeAgent:
         # self.presence_penalty = 0.0005
 
         self.messages = []
-        self.prompt = prompt
         self.system_prompt = Path("AGENTS.md").read_text(encoding="utf-8")
-        self.user_prompt = (
-            "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
-            "Stop when you have completed your analysis.\n"
-            f"The user's prompt is:\n\n{self.prompt}"
-        )
 
-        # Initialize system and user messages
         self.messages.append({"role": "system", "content": self.system_prompt})
-        self.messages.append({"role": "user", "content": self.user_prompt})
 
         # Load tools from the registry
         self.tools = source_agent.tools.tool_registry.registry.get_tools()
@@ -47,19 +38,23 @@ class CodeAgent:
             api_key=self.api_key,
         )
 
-    def run(self, max_steps=50):
+    def run(self, user_prompt: str = None, max_steps: int = 50):
+        """
+        If user_prompt is provided, seed it;
+        otherwise assume messages already has the last user turn.
+        Then run the full react loop to completion.
+        """
+        if user_prompt is not None:
+            self.messages.append({"role": "user", "content": user_prompt})
+
         for step in range(max_steps):
             print(f"🔄 Agent iteration {step}/{max_steps}")
-
             response = self.call_llm(self.messages)
-
             choice = response.choices[0]
             message = choice.message
             self.messages.append(message)
-
             print("🤖 Agent:", message.content)
 
-            # If the agent is using a tool, run it and loop again
             if message.tool_calls:
                 for tool_call in message.tool_calls:
                     print(f"🔧 Calling: {tool_call.function.name}")
@@ -68,22 +63,17 @@ class CodeAgent:
                     result = self.handle_tool_call(tool_call)
                     self.messages.append(result)
 
-                    print(f"✅ Result: {result}")
+                    print("✅ Result:", result)
 
-                    # Check if this was the task completion tool
                     if tool_call.function.name == "task_mark_complete":
                         print("💯 Task marked complete!")
                         return result
             else:
-                print("💭 Agent responded without tool calls - continuing loop")
+                print("💭 No tools; continuing")
 
-            print(f"\n{'-'*40}\n")
+            print("\n" + "-" * 40 + "\n")
 
-        print(
-            "🚨 Max steps reached without task completion"
-            " - consider refining the prompt or tools."
-        )
-
+        print("🚨 Max steps reached without task completion.")
         return {"error": "Max steps reached without task completion."}
 
     def handle_tool_call(self, tool_call):
