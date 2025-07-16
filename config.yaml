@@ -1,0 +1,10 @@
+orchestrator:
+  parallel_agents: 4
+  task_timeout: 60
+  aggregation_strategy: consensus
+  question_generation_prompt: |
+    Generate {num_agents} JSON-array questions to explore: "{user_input}"
+  synthesis_prompt: |
+    You are to synthesize {num_responses} inputs:
+    {agent_responses}
+    Produce a final coherent summary.
