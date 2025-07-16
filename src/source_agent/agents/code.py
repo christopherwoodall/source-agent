@@ -1,5 +1,7 @@
 import json
+import time
 import openai
+import random
 import source_agent
 from pathlib import Path
 
@@ -18,6 +20,9 @@ class CodeAgent:
         self.model = model
 
         self.temperature = temperature
+        # self.top_p = 0.98
+        # self.frequency_penalty = 0.0005
+        # self.presence_penalty = 0.0005
 
         self.messages = []
         self.prompt = prompt
@@ -46,7 +51,7 @@ class CodeAgent:
         for step in range(max_steps):
             print(f"🔄 Agent iteration {step}/{max_steps}")
 
-            response = self.send(self.messages)
+            response = self.call_llm(self.messages)
 
             choice = response.choices[0]
             message = choice.message
@@ -101,7 +106,7 @@ class CodeAgent:
             }
 
         except Exception as e:
-            print(f"❌ Error executing tool {tool_name}: {str(e)}")
+            # print(f"❌ Error executing tool {tool_name}: {str(e)}")
             return {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
@@ -109,11 +114,63 @@ class CodeAgent:
                 "content": json.dumps({"error": f"Tool execution failed: {str(e)}"}),
             }
 
-    def send(self, messages):
-        return self.session.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            tools=self.tools,
-            tool_choice="auto",
-            messages=messages,
-        )
+    def call_llm(
+        self,
+        messages,
+        max_retries: int = 5,
+        backoff_base: float = 1.0,
+        backoff_factor: float = 2.0,
+        max_backoff: float = 60.0,
+    ):
+        """
+        Call the OpenAI chat API, retrying on transient errors
+        with exponential backoff and jitter.
+
+        Args:
+            messages: the message list to send
+            max_retries: how many total attempts (including first)
+            backoff_base: initial delay in seconds
+            backoff_factor: multiplier for exponential backoff
+            max_backoff: cap on backoff delay
+        """
+        # Notes:
+        #  - https://medium.com/@Doug-Creates/nightmares-and-client-chat-completions-create-29ad0acbe16a
+        for attempt in range(1, max_retries + 1):
+            try:
+                return self.session.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    tools=self.tools,
+                    tool_choice="auto",
+                    temperature=self.temperature,
+                    # top_p=self.top_p,
+                    # frequency_penalty=self.frequency_penalty,
+                    # presence_penalty=self.presence_penalty,
+                )
+            except (
+                openai.Timeout,
+                openai.APIError,
+                openai.OpenAIError,
+                openai.APIStatusError,
+                openai.RateLimitError,
+                openai.APITimeoutError,
+                openai.APIConnectionError,
+            ) as e:
+                # If we've used up our retries, re‐raise
+                if attempt == max_retries:
+                    print(f"❌ LLM call failed after {attempt} attempts: {e}")
+                    raise
+                # Otherwise, back off and retry
+                delay = min(
+                    backoff_base * (backoff_factor ** (attempt - 1)) + random.random(),
+                    max_backoff,
+                )
+                print(
+                    f"⚠️ Attempt {attempt} failed with {type(e).__name__}: {e}. "
+                    f"Retrying in {delay:.1f}s..."
+                )
+                time.sleep(delay)
+            except Exception as e:
+                # Unexpected exception - do not retry
+                print(f"❌ Unexpected error in LLM call: {e}")
+                raise
