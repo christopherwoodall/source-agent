@@ -1,5 +1,7 @@
 import sys
 import argparse
+
+# https://docs.python.org/3/library/readline.html
 import source_agent
 
 
@@ -24,19 +26,57 @@ def run_prompt_mode(agent, prompt) -> str:
 
 
 def run_interactive_mode(agent):
-    print("Entering interactive mode. Type your prompt and ↵; type 'q' to quit.")
+    print("\n🧠 Entering interactive mode.")
+    print(
+        "💡 Type your prompt and press ↵. Type ':exit' to quit, ':reset' to start fresh, or ':help' for commands.\n"
+    )
+
+    system_prompt = agent.system_prompt
+    history = []
+
     while True:
-        user_input = input("\n> ").strip()
-        if user_input.lower() == "q":
-            print("Exiting interactive session.")
-            return
+        try:
+            user_input = input("🗣️  You > ").strip()
 
-        # reset the conversation to just the system prompt + the new user prompt
-        agent.messages = [{"role": "system", "content": agent.system_prompt}]
-        agent.messages.append({"role": "user", "content": user_input})
+            if not user_input:
+                continue
 
-        # run full react loop
-        agent.run()
+            if user_input.lower() in ("q", ":exit"):
+                print("👋 Exiting interactive session.")
+                break
+
+            if user_input.lower() in (":help", "?"):
+                print(
+                    """
+🔧 Available commands:
+  :exit      Quit the session
+  :reset     Clear conversation history
+  :help      Show this help message
+                """
+                )
+                continue
+
+            if user_input.lower() == ":reset":
+                print("🔄 Conversation history reset.")
+                agent.messages = [{"role": "system", "content": system_prompt}]
+                history.clear()
+                continue
+
+            # Update message history
+            agent.messages = [{"role": "system", "content": system_prompt}]
+            agent.messages.append({"role": "user", "content": user_input})
+
+            history.append(user_input)
+
+            print("🤖 Thinking...\n")
+            response = agent.run()
+
+            if response:
+                print(f"\n🤖 Agent > {response.strip()}\n")
+
+        except (KeyboardInterrupt, EOFError):
+            print("\n👋 Session interrupted. Exiting.")
+            break
 
 
 def main() -> int:
