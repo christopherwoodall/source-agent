@@ -73,6 +73,11 @@ source-agent \
   --prompt "Review the error handling in this codebase"
 ```
 
+### Interactive Mode
+```bash
+source-agent --interactive
+```
+
 ---
 
 ## Supported Providers
