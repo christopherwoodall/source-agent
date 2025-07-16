@@ -3,14 +3,7 @@ import argparse
 import source_agent
 
 
-# # Configure logging
-# logging.basicConfig(
-#     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-# )
-# logger = logging.getLogger(__name__)
-
-
-def dispatch_agent(agent, prompt) -> str:
+def run_noninteractive_mode(agent, prompt) -> str:
     """
     Dispatch the agent with the given prompt.
 
@@ -27,12 +20,10 @@ def dispatch_agent(agent, prompt) -> str:
         f"The user's prompt is:\n\n{prompt}"
     )
 
-    result = agent.run(user_prompt=user_prompt)
-
-    return result
+    return agent.run(user_prompt=user_prompt)
 
 
-def interactive_session(agent):
+def run_interactive_mode(agent):
     print("Entering interactive mode. Type your prompt and ↵; type 'q' to quit.")
     while True:
         user_input = input("\n> ").strip()
@@ -105,13 +96,14 @@ def main() -> int:
         "--interactive",
         action="store_true",
         default=False,
-        help="Run in interactive step‑through mode",
+        help="Run in interactive step-through mode",
     )
 
     args = parser.parse_args()
 
     # if args.verbose:
-    #     logging.getLogger().setLevel(logging.DEBUG)
+    #     # Logging setup?
+    #     pass
 
     api_key, base_url = source_agent.providers.get(args.provider)
     agent = source_agent.agents.code.CodeAgent(
@@ -123,11 +115,11 @@ def main() -> int:
 
     if args.interactive:
         # Run in interactive mode
-        interactive_session(agent)
+        run_interactive_mode(agent)
 
     else:
         # Let the agent run autonomously
-        dispatch_agent(agent=agent, prompt=args.prompt)
+        run_noninteractive_mode(agent=agent, prompt=args.prompt)
 
     return 0
 
