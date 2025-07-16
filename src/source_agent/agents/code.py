@@ -47,39 +47,30 @@ class CodeAgent:
         if user_prompt is not None:
             self.messages.append({"role": "user", "content": user_prompt})
 
-        for step in range(max_steps):
+        for step in range(1, max_steps + 1):
             print(f"🔄 Agent iteration {step}/{max_steps}")
             response = self.call_llm(self.messages)
+
             choice = response.choices[0]
             message = choice.message
             self.messages.append(message)
-            print("🤖 Agent:", message.content)
+
+            if message.content:
+                print("🤖 Agent:", message.content)
 
             if message.tool_calls:
                 for tool_call in message.tool_calls:
+                    if tool_call.function.name == "msg_task_complete":
+                        print("💯 Task marked complete!")
+                        return
+
                     print(f"🔧 Calling: {tool_call.function.name}")
-                    # print(f"📝 Args: {tool_call.function.arguments}")
 
                     result = self.handle_tool_call(tool_call)
                     self.messages.append(result)
 
-                    # print("✅ Result:", result)
+            print("-" * 40 + "\n")
 
-                    # # TODO - Better message handling
-                    # if tool_call.function.name == "msg_final_answer":
-                    #     print("✅ Final answer received!")
-                    #     return result
-
-                    if tool_call.function.name == "msg_task_complete":
-                        print("💯 Task marked complete!")
-                        return result
-            # else:
-            #     # print("💭 No tools; continuing")
-            #     pass
-
-            print("\n" + "-" * 40 + "\n")
-
-        # print("🚨 Max steps reached without task completion.")
         return {"error": "Max steps reached without task completion."}
 
     def handle_tool_call(self, tool_call):
@@ -91,7 +82,6 @@ class CodeAgent:
                 func = self.tool_mapping[tool_name]
                 result = func(**tool_args)
             else:
-                # print(f"❌ Function {tool_name} not found")
                 result = {"error": f"Unknown tool: {tool_name}"}
 
             return {
@@ -102,7 +92,6 @@ class CodeAgent:
             }
 
         except Exception as e:
-            # print(f"❌ Error executing tool {tool_name}: {str(e)}")
             return {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
