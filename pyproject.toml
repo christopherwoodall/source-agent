@@ -123,7 +123,8 @@ exclude = []
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-v"
+addopts = "-ra -q -v"
+python_files = "test_*.py"
 
 
 # General scanning options
