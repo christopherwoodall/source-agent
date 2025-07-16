@@ -4,7 +4,7 @@ from .tool_registry import registry
 
 
 @registry.register(
-    name="task_mark_complete",
+    name="msg_task_complete",
     description="REQUIRED: Call this tool when the user's original request has been fully satisfied and you have provided a complete answer. This signals task completion and exits the agent loop.",
     parameters={
         "type": "object",
@@ -21,7 +21,7 @@ from .tool_registry import registry
         "required": ["task_summary", "completion_message"],
     },
 )
-def task_mark_complete(task_summary: str, completion_message: str) -> dict:
+def msg_task_complete(task_summary: str, completion_message: str) -> dict:
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
