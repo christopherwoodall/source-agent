@@ -24,7 +24,7 @@ def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
     Raises:
         ValueError: If the provider is unknown or the API key is missing.
     """
-    PROVIDER_KEYS = {
+    provider_keys = {
         "xai": "XAI_API_KEY",
         "google": "GEMINI_API_KEY",
         "google_vertex": "GOOGLE_VERTEX_API_KEY",
@@ -38,7 +38,7 @@ def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
         "openrouter": "OPENROUTER_API_KEY",
     }
 
-    PROVIDER_BASE_URLS = {
+    provider_base_urls = {
         "xai": "https://api.x.ai/v1",
         "google": "https://generativelanguage.googleapis.com/v1beta",
         "google_vertex": "https://generativelanguage.googleapis.com/v1beta",
@@ -52,7 +52,7 @@ def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
         "openrouter": "https://openrouter.ai/api/v1",
     }
 
-    provider_key = PROVIDER_KEYS.get(provider_name.lower())
+    provider_key = provider_keys.get(provider_name.lower())
     if not provider_key:
         raise ValueError(f"Unknown provider: {provider_name}")
 
@@ -60,74 +60,53 @@ def get_provider(provider_name: str = "openrouter") -> tuple[str, str]:
     if not api_key:
         raise ValueError(f"Missing API key for provider: {provider_name}")
 
-    base_url = PROVIDER_BASE_URLS.get(provider_name.lower())
+    base_url = provider_base_urls.get(provider_name.lower())
     if not base_url:
         raise ValueError(f"Missing base URL for provider: {provider_name}")
 
     return api_key, base_url
 
 
-def dispatch_agent(
-    prompt: str,
-    provider: str = "openrouter",
-    model: str = "moonshotai/kimi-k2",
-    temperature: float = 0.3,
-) -> str:
+def dispatch_agent(agent, prompt) -> str:
     """
     Dispatch the agent with the given prompt.
 
     Args:
-        prompt: The prompt to send to the agent.
-        provider: The AI provider to use.
-        model: The model to use.
-        temperature: The temperature for the model.
+        agent: The agent instance to run.
+        prompt: The prompt to provide to the agent.
 
     Returns:
         The response from the agent.
-
-    Raises:
-        Exception: If agent execution fails.
     """
     print("Starting Source Agent")
-    print(f"Using provider: {provider}, model: {model}, temperature: {temperature}")
 
-    api_key, provider_url = get_provider(provider)
-
-    agent = source_agent.agents.code.CodeAgent(
-        api_key=api_key,
-        base_url=provider_url,
-        model=model,
-        prompt=prompt,
-        temperature=temperature,
+    user_prompt = (
+        "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
+        "Stop when you have completed your analysis.\n"
+        f"The user's prompt is:\n\n{prompt}"
     )
 
-    result = agent.run()
+    result = agent.run(user_prompt=user_prompt)
     print("Agent execution completed successfully")
+
     return result
 
 
-def validate_prompt(prompt: str, max_length: int = 10000) -> str:
-    """
-    Validate and sanitize the prompt.
+def interactive_session(agent):
+    print("Entering interactive mode. Type your prompt and ↵; type 'q' to quit.")
+    while True:
+        user_input = input("\n> ").strip()
+        if user_input.lower() == "q":
+            print("Exiting interactive session.")
+            return
 
-    Args:
-        prompt: The prompt to validate.
+        # reset the conversation to just the system prompt + the new user prompt
+        agent.messages = [{"role": "system", "content": agent.system_prompt}]
+        agent.messages.append({"role": "user", "content": user_input})
 
-    Returns:
-        The validated prompt.
-
-    Raises:
-        ValueError: If prompt is invalid.
-    """
-    prompt = prompt.strip()
-    if not prompt:
-        raise ValueError("Prompt cannot be empty or whitespace only")
-
-    # Reasonable upper limit
-    if len(prompt) > max_length:
-        raise ValueError(f"Prompt is too long (max {max_length} characters)")
-
-    return prompt
+        # run full react loop
+        agent.run()
+        print("\n🔚 Run completed.\n")
 
 
 def main() -> int:
@@ -182,25 +161,41 @@ def main() -> int:
         default=False,
         help="Enable verbose logging",
     )
+    parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        default=False,
+        help="Run in interactive step‑through mode",
+    )
+    parser.add_argument(
+        "-h",
+        "--heavy",
+        action="store_true",
+        default=False,
+        help="Enable heavy mode",
+    )
 
     args = parser.parse_args()
 
     # if args.verbose:
     #     logging.getLogger().setLevel(logging.DEBUG)
 
-    # Validate prompt
-    prompt = validate_prompt(args.prompt)
-
-    # Run agent
-    result = dispatch_agent(
-        prompt=prompt,
-        provider=args.provider,
+    api_key, base_url = get_provider(args.provider)
+    agent = source_agent.agents.code.CodeAgent(
+        api_key=api_key,
+        base_url=base_url,
         model=args.model,
         temperature=args.temperature,
     )
 
-    print(result)
-    return 0
+    if args.interactive:
+        # Run in interactive mode
+        return interactive_session(agent)
+
+    else:
+        # Let the agent run autonomously
+        return dispatch_agent(agent=agent, prompt=args.prompt)
 
 
 if __name__ == "__main__":
