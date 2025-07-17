@@ -5,7 +5,7 @@ from .tool_registry import registry
 
 @registry.register(
     name="msg_complete_tool",
-    description="REQUIRED: Call this tool when the user's original request has been fully satisfied and you have provided a complete answer. This signals task completion and exits the agent loop.",
+    description="REQUIRED: Call this tool when you have fulfilled the user's request and are satisfied with your response or when there is nothing to add. This signals task completion and exits the agent loop.",
     parameters={
         "type": "object",
         "properties": {},
