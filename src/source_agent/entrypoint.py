@@ -18,7 +18,7 @@ def run_prompt_mode(agent, prompt) -> str:
     """
     user_prompt = (
         "You are a helpful code assistant. Think step-by-step and use tools when needed.\n"
-        "Stop when you have completed your analysis.\n"
+        "Stop when you have completed your thoughts.\n"
         f"The user's prompt is:\n\n{prompt}"
     )
 
@@ -26,9 +26,15 @@ def run_prompt_mode(agent, prompt) -> str:
 
 
 def run_interactive_mode(agent):
-    print("\n🧠 Entering interactive mode.")
     print(
-        "💡 Type your prompt and press ↵. Type ':exit' to quit, ':reset' to start fresh, or ':help' for commands.\n"
+        """
+🧠 Entering interactive mode.
+💡 Type your prompt and press ↵.
+
+    Type ':exit' to quit,
+         ':reset' to start fresh
+         ':help' for commands.
+        """
     )
 
     system_prompt = agent.system_prompt
@@ -41,19 +47,26 @@ def run_interactive_mode(agent):
             if not user_input:
                 continue
 
-            if user_input.lower() in ("q", ":exit"):
-                print("👋 Exiting interactive session.")
-                break
-
             if user_input.lower() in (":help", "?"):
                 print(
                     """
 🔧 Available commands:
   :exit      Quit the session
+  :history   Show conversation history
   :reset     Clear conversation history
   :help      Show this help message
                 """
                 )
+                continue
+
+            if user_input.lower() in ("q", ":exit"):
+                print("👋 Exiting interactive session.")
+                break
+
+            if user_input.lower() == ":history":
+                print("📜 Conversation History:")
+                for i, msg in enumerate(history, 1):
+                    print(f"{i}. {msg}")
                 continue
 
             if user_input.lower() == ":reset":
@@ -63,10 +76,9 @@ def run_interactive_mode(agent):
                 continue
 
             # Update message history
-            agent.messages = [{"role": "system", "content": system_prompt}]
             agent.messages.append({"role": "user", "content": user_input})
 
-            history.append(user_input)
+            history.append(f"User: {user_input}")
 
             print("🤖 Thinking...\n")
             response = agent.run()
