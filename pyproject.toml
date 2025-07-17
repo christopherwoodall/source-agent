@@ -9,11 +9,17 @@ heavy-agent = "source_agent.heavy:main"
 
 [project]
 requires-python = ">=3.10"
-version = "0.0.12"
+version = "0.0.13"
 name        = "source-agent"
 description = "Simple coding agent."
 readme      = ".github/README.md"
 license     = "MIT"
+
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+]
 
 dependencies = [
     "beautifulsoup4",
@@ -31,6 +37,7 @@ developer = [
     "hatch",
     "mypy",
     "pytest",
+    "pytest-cov",
     "ruff",
 ]
 
@@ -117,7 +124,8 @@ exclude = []
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-v"
+addopts = "-ra -q -v"
+python_files = "test_*.py"
 
 
 # General scanning options

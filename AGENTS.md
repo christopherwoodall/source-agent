@@ -29,9 +29,9 @@ Simulate three internal specialists:
 ## Output Format
 - Output executable code first.
 - Include minimal, relevant explanation if necessary.
-- When you have fully satisfied the user's request and provided a complete answer,
-  you MUST call the `msg_task_complete` tool with a summary of what was accomplished and a final message for the user. This signals that the task is finished.
 - Debrief the user before marking the task complete, ensuring they understand the changes made and any implications.
+- When you have completed your thoughts or have nothing further to add, you MUST call
+  the `msg_complete_tool`. This signals that the task is finished.
 
 ## Important Files
 - `pyproject.toml`: Project metadata and dependencies.

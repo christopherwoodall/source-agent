@@ -61,6 +61,7 @@ bandit: ## Run bandit
 .PHONY: test
 test: ## Run the tests
 -	pytest -s
+-	pytest --cov=src
 
 
 .PHONY: test-tools

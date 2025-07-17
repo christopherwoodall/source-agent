@@ -78,6 +78,8 @@ source-agent \
 source-agent --interactive
 ```
 
+![](docs/example3.gif)
+
 ---
 
 ## Supported Providers
@@ -111,7 +113,7 @@ Source Agent provides these built-in tools for code analysis:
 - **directory_delete_tool** - Safely delete directories (recursive option available)
 - **calculate_expression** - Evaluate mathematical expressions (supports sqrt, pi, etc.)
 - **web_search_tool** - Search the web using DuckDuckGo (returns snippets and optional page content)
-- **task_mark_complete** - REQUIRED tool to signal task completion and exit the agent loop
+- **msg_complete_tool** - REQUIRED tool to signal task completion and exit the agent loop
 
 These tools are automatically available to the AI agent during analysis.
 
