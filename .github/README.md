@@ -78,6 +78,8 @@ source-agent \
 source-agent --interactive
 ```
 
+![](docs/example3.gif)
+
 ---
 
 ## Supported Providers
