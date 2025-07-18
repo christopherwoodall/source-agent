@@ -19,7 +19,7 @@ A simple coding agent.
 ## How it Works
 **Source Agent** operates as a stateless entity, guided by clear directives and external context. Its behavior is primarily defined by **`AGENTS.md`**, which serves as the core system prompt. 
 
-![](docs/example4.gif)
+![](https://github.com/christopherwoodall/source-agent/tree/main/.github/docs/example4.gif)
 
 ---
 
@@ -71,7 +71,7 @@ source-agent \
 source-agent --interactive
 ```
 
-![](docs/example3.gif)
+![](https://github.com/christopherwoodall/source-agent/tree/main/.github/docs/example3.gif)
 
 ---
 
