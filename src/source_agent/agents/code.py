@@ -103,7 +103,10 @@ class CodeAgent:
             except Exception as e:
                 yield AgentEvent(
                     type=AgentEventType.ERROR,
-                    data={"message": f"LLM call failed: {str(e)}", "exception": e},
+                    data={
+                        "message": f"LLM call failed: {str(e)}",
+                        "exception_type": type(e).__name__,
+                    },
                 )
                 return
 
@@ -141,7 +144,7 @@ class CodeAgent:
                     try:
                         parsed_tool_result = json.loads(tool_result_content)
                     except (json.JSONDecodeError, TypeError):
-                        # Keep as string if not JSON
+                        # Fallback to string representation for complex types
                         parsed_tool_result = tool_result_content
 
                     yield AgentEvent(
@@ -190,15 +193,13 @@ class CodeAgent:
             # Ensure result is always JSON serializable for the 'content' field of the tool message
             # This is important for the LLM to process it correctly
             if not isinstance(result, (str, dict, list, int, float, bool, type(None))):
-                result = str(
-                    result
-                )  # Fallback to string representation for complex types
+                result = str(result)
 
             return {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
                 "name": tool_name,
-                "content": json.dumps(result),  # Ensure content is always a JSON string
+                "content": json.dumps(result),
             }
 
         except Exception as e:
@@ -235,18 +236,21 @@ class CodeAgent:
             The response from the chat API.
 
         Raises:
-            openai.Timeout: If the API call times out.
-            openai.APIError: If the API call fails due to an API error.
-            openai.OpenAIError: If the API call fails after retries.
-            openai.APIStatusError: If the API call fails due to an API status error.
-            openai.RateLimitError: If the API call exceeds the rate limit.
-            openai.APITimeoutError: If the API call times out.
-            openai.APIConnectionError: If the API call fails due to a connection error.
+            openai.OpenAIError: If the API call fails after retries due to an OpenAI-specific error.
+            Exception: For any other unexpected errors.
         """
         retries = max_retries or self.MAX_RETRIES
         base = backoff_base or self.BACKOFF_BASE
         factor = backoff_factor or self.BACKOFF_FACTOR
         cap = max_backoff or self.MAX_BACKOFF
+
+        # Define specific OpenAI errors that are generally retryable.
+        RETRYABLE_OPENAI_ERRORS = (
+            openai.RateLimitError,  # 429 status code
+            openai.APITimeoutError,  # Timeout during the API call
+            openai.APIConnectionError,  # Network connection issues
+            openai.APIStatusError,  # Covers 5xx errors which are often retryable, and also other 4xx errors
+        )
 
         for attempt in range(1, retries + 1):
             try:
@@ -257,21 +261,14 @@ class CodeAgent:
                     tool_choice="auto",
                     temperature=self.temperature,
                 )
-            except (
-                openai.Timeout,
-                openai.APIError,
-                openai.OpenAIError,
-                openai.APIStatusError,
-                openai.RateLimitError,
-                openai.APITimeoutError,
-                openai.APIConnectionError,
-            ) as e:
+            except RETRYABLE_OPENAI_ERRORS as e:
+                # This block handles known retryable OpenAI API errors.
                 if attempt == retries:
                     print(
                         f"❌ LLM call failed after {attempt} attempts: {e}",
                         file=sys.stderr,
                     )
-                    raise
+                    raise  # Re-raise if all retries exhausted
 
                 delay = min(base * (factor ** (attempt - 1)) + random.random(), cap)
                 print(
@@ -281,6 +278,17 @@ class CodeAgent:
                 )
                 time.sleep(delay)
 
+            except openai.OpenAIError as e:
+                # This block handles non-retryable OpenAI API errors (e.g., AuthenticationError,
+                # PermissionDeniedError, InvalidRequestError, etc.).
+                # These typically indicate a problem that retrying won't solve.
+                print(
+                    f"❌ Non-retryable OpenAI error during LLM call: {e}",
+                    file=sys.stderr,
+                )
+                raise  # Re-raise immediately
+
             except Exception as e:
+                # This block catches any other unexpected Python exceptions.
                 print(f"❌ Unexpected error during LLM call: {e}", file=sys.stderr)
                 raise
