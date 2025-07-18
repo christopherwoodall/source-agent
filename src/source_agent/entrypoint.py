@@ -198,13 +198,6 @@ def main() -> int:
         help="Temperature for the model (default: 0.3)",
     )
     parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        default=False,
-        help="Enable verbose logging for agent events (e.g., tool arguments).",
-    )
-    parser.add_argument(
         "-i",
         "--interactive",
         action="store_true",
@@ -213,10 +206,6 @@ def main() -> int:
     )
 
     args = parser.parse_args()
-
-    # if args.verbose:
-    #      # Logging setup? This can now be handled by parsing `args.verbose` and passing to handle_agent_events
-    #      pass
 
     api_key, base_url = source_agent.providers.get(args.provider)
     agent = source_agent.agents.code.CodeAgent(
