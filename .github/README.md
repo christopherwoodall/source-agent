@@ -19,14 +19,7 @@ A simple coding agent.
 ## How it Works
 **Source Agent** operates as a stateless entity, guided by clear directives and external context. Its behavior is primarily defined by **`AGENTS.md`**, which serves as the core system prompt. 
 
-![](docs/example.gif)
-
----
-
-## Prerequisites
-- Python 3.10 or higher
-- An API key from one of the supported AI providers (see [Supported Providers](#supported-providers))
-- Git (for .gitignore support)
+![](docs/example4.gif)
 
 ---
 
@@ -42,7 +35,7 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install in development mode
-pip install -e ".[developer]"
+pip install --editable ".[developer]"
 
 # Verify the installation
 source-agent --help
@@ -116,22 +109,3 @@ Source Agent provides these built-in tools for code analysis:
 - **msg_complete_tool** - REQUIRED tool to signal task completion and exit the agent loop
 
 These tools are automatically available to the AI agent during analysis.
-
----
-
-## Core Architecture
-- **Entry Point**: `src/source_agent/entrypoint.py` - CLI interface with argument parsing
-- **Agent Engine**: `src/source_agent/agents/code.py` - OpenAI-compatible client with tool integration
-- **System Prompt**: `AGENTS.md` - Defines agent behavior, roles, and constraints
-
-### Project Structure
-
-```
-source-agent/
-├── src/source_agent/
-│   ├── entrypoint.py      # CLI interface
-│   ├── agents/
-│   │   └── code.py        # Main agent logic
-│   └── tools/             # File system tools
-└── AGENTS.md              # System prompt & behavior rules
-```

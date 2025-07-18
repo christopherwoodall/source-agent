@@ -1,10 +1,38 @@
 import re
+import sys
 import json
 import time
 import openai
 import random
 import source_agent
+from enum import Enum
+from typing import Any, Dict, Iterator
 from pathlib import Path
+from dataclasses import field, dataclass
+
+
+class AgentEventType(Enum):
+    ITERATION_START = "iteration_start"
+    AGENT_MESSAGE = "agent_message"
+    TOOL_CALL = "tool_call"
+    TOOL_RESULT = "tool_result"
+    TASK_COMPLETE = "task_complete"
+    MAX_STEPS_REACHED = "max_steps_reached"
+    ERROR = "error"
+
+
+@dataclass(frozen=True)
+class AgentEvent:
+    """
+    Represents an event occurring during the agent's operation.
+
+    Attributes:
+        type: The type of event (e.g., iteration_start, agent_message).
+        data: A dictionary containing event-specific data.
+    """
+
+    type: AgentEventType
+    data: Dict[str, Any] = field(default_factory=dict)
 
 
 class CodeAgent:
@@ -17,10 +45,10 @@ class CodeAgent:
 
     def __init__(
         self,
-        api_key=None,
-        base_url=None,
-        model=None,
-        temperature=0.3,
+        api_key: str = None,
+        base_url: str = None,
+        model: str = None,
+        temperature: float = 0.3,
         system_prompt: str = None,
     ):
         self.api_key = api_key
@@ -46,13 +74,18 @@ class CodeAgent:
         """Clear conversation and initialize with system prompt."""
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    def run(self, user_prompt: str = None, max_steps: int = None):
+    def run(
+        self, user_prompt: str = None, max_steps: int = None
+    ) -> Iterator[AgentEvent]:
         """
-        Run a full ReAct-style loop with tool usage.
+        Run a full ReAct-style loop with tool usage, yielding events at each step.
 
         Args:
             user_prompt: Optional user input to start the conversation.
             max_steps: Maximum steps before stopping.
+
+        Yields:
+            AgentEvent: An event describing the current state or action of the agent.
         """
         if user_prompt:
             self.messages.append({"role": "user", "content": user_prompt})
@@ -60,31 +93,69 @@ class CodeAgent:
         steps = max_steps or self.MAX_STEPS
 
         for step in range(1, steps + 1):
-            print(f"🔄 Iteration {step}/{steps}")
-            response = self.call_llm(self.messages)
+            yield AgentEvent(
+                type=AgentEventType.ITERATION_START,
+                data={"step": step, "max_steps": steps},
+            )
+
+            try:
+                response = self.call_llm(self.messages)
+            except Exception as e:
+                yield AgentEvent(
+                    type=AgentEventType.ERROR,
+                    data={
+                        "message": f"LLM call failed: {str(e)}",
+                        "exception_type": type(e).__name__,
+                    },
+                )
+                return
 
             message = response.choices[0].message
             self.messages.append(message)
 
             parsed_content = self.parse_response_message(message.content)
             if parsed_content:
-                print("🤖 Agent:", parsed_content)
+                yield AgentEvent(
+                    type=AgentEventType.AGENT_MESSAGE, data={"content": parsed_content}
+                )
 
             if message.tool_calls:
                 for tool_call in message.tool_calls:
                     tool_name = tool_call.function.name
-                    print(f"🔧 Calling: {tool_name}")
+                    yield AgentEvent(
+                        type=AgentEventType.TOOL_CALL,
+                        data={
+                            "name": tool_name,
+                            "arguments": tool_call.function.arguments,
+                        },
+                    )
 
                     if tool_name == "msg_complete_tool":
-                        print("💯 Task marked complete!\n")
+                        yield AgentEvent(
+                            type=AgentEventType.TASK_COMPLETE,
+                            data={"message": "Task marked complete!"},
+                        )
                         return
 
-                    result = self.handle_tool_call(tool_call)
-                    self.messages.append(result)
+                    result_message = self.handle_tool_call(tool_call)
+                    self.messages.append(result_message)
+                    # Attempt to parse tool result content as JSON if it's a string, otherwise use as-is
+                    tool_result_content = result_message["content"]
+                    try:
+                        parsed_tool_result = json.loads(tool_result_content)
+                    except (json.JSONDecodeError, TypeError):
+                        # Fallback to string representation for complex types
+                        parsed_tool_result = tool_result_content
 
-            print("-" * 40 + "\n")
+                    yield AgentEvent(
+                        type=AgentEventType.TOOL_RESULT,
+                        data={"name": tool_name, "result": parsed_tool_result},
+                    )
 
-        return {"error": "Max steps reached without task completion."}
+        yield AgentEvent(
+            type=AgentEventType.MAX_STEPS_REACHED,
+            data={"message": f"Max steps ({steps}) reached without task completion."},
+        )
 
     def parse_response_message(self, message: str) -> str:
         """
@@ -119,6 +190,11 @@ class CodeAgent:
                 return self._tool_error(tool_call, f"Unknown tool: {tool_name}")
 
             result = func(**tool_args)
+            # Ensure result is always JSON serializable for the 'content' field of the tool message
+            # This is important for the LLM to process it correctly
+            if not isinstance(result, (str, dict, list, int, float, bool, type(None))):
+                result = str(result)
+
             return {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
@@ -160,18 +236,21 @@ class CodeAgent:
             The response from the chat API.
 
         Raises:
-            openai.Timeout: If the API call times out.
-            openai.APIError: If the API call fails due to an API error.
-            openai.OpenAIError: If the API call fails after retries.
-            openai.APIStatusError: If the API call fails due to an API status error.
-            openai.RateLimitError: If the API call exceeds the rate limit.
-            openai.APITimeoutError: If the API call times out.
-            openai.APIConnectionError: If the API call fails due to a connection error.
+            openai.OpenAIError: If the API call fails after retries due to an OpenAI-specific error.
+            Exception: For any other unexpected errors.
         """
         retries = max_retries or self.MAX_RETRIES
         base = backoff_base or self.BACKOFF_BASE
         factor = backoff_factor or self.BACKOFF_FACTOR
         cap = max_backoff or self.MAX_BACKOFF
+
+        # Define specific OpenAI errors that are generally retryable.
+        RETRYABLE_OPENAI_ERRORS = (
+            openai.RateLimitError,  # 429 status code
+            openai.APITimeoutError,  # Timeout during the API call
+            openai.APIConnectionError,  # Network connection issues
+            openai.APIStatusError,  # Covers 5xx errors which are often retryable, and also other 4xx errors
+        )
 
         for attempt in range(1, retries + 1):
             try:
@@ -182,26 +261,34 @@ class CodeAgent:
                     tool_choice="auto",
                     temperature=self.temperature,
                 )
-            except (
-                openai.Timeout,
-                openai.APIError,
-                openai.OpenAIError,
-                openai.APIStatusError,
-                openai.RateLimitError,
-                openai.APITimeoutError,
-                openai.APIConnectionError,
-            ) as e:
+            except RETRYABLE_OPENAI_ERRORS as e:
+                # This block handles known retryable OpenAI API errors.
                 if attempt == retries:
-                    print(f"❌ LLM call failed after {attempt} attempts: {e}")
-                    raise
+                    print(
+                        f"❌ LLM call failed after {attempt} attempts: {e}",
+                        file=sys.stderr,
+                    )
+                    raise  # Re-raise if all retries exhausted
 
                 delay = min(base * (factor ** (attempt - 1)) + random.random(), cap)
                 print(
                     f"⚠️  Attempt {attempt} failed: {type(e).__name__}: {e}. "
-                    f"Retrying in {delay:.1f}s..."
+                    f"Retrying in {delay:.1f}s...",
+                    file=sys.stderr,
                 )
                 time.sleep(delay)
 
+            except openai.OpenAIError as e:
+                # This block handles non-retryable OpenAI API errors (e.g., AuthenticationError,
+                # PermissionDeniedError, InvalidRequestError, etc.).
+                # These typically indicate a problem that retrying won't solve.
+                print(
+                    f"❌ Non-retryable OpenAI error during LLM call: {e}",
+                    file=sys.stderr,
+                )
+                raise  # Re-raise immediately
+
             except Exception as e:
-                print(f"❌ Unexpected error during LLM call: {e}")
+                # This block catches any other unexpected Python exceptions.
+                print(f"❌ Unexpected error during LLM call: {e}", file=sys.stderr)
                 raise
