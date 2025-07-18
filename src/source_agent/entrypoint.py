@@ -205,6 +205,13 @@ def main() -> int:
         default=False,
         help="Run in interactive step-through mode",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="Enable verbose output for agent events and tool calls",
+    )
 
     args = parser.parse_args()
 

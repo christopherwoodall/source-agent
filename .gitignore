@@ -1,6 +1,7 @@
 # Project Specific Ignore List
-*.local.*
+.git/
 .vscode/
+*.local.*
 
 
 # Byte-compiled / optimized / DLL files
