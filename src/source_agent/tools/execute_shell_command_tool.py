@@ -1,5 +1,5 @@
-import subprocess
 import pathlib
+import subprocess
 from .tool_registry import registry
 
 
@@ -60,6 +60,6 @@ def execute_shell_command(command: str) -> dict:
             "command": command,
             "stdout": "",
             "stderr": str(e),
-            "exit_code": 1, # Indicate failure
+            "exit_code": 1,  # Indicate failure
             "error": f"Failed to execute command: {str(e)}",
         }
