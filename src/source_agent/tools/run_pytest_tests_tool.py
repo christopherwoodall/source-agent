@@ -1,6 +1,7 @@
+# ruff: noqa: E501
 import sys
-import subprocess
 import pathlib
+import subprocess
 from typing import List, Optional
 from .tool_registry import registry
 
@@ -26,7 +27,9 @@ from .tool_registry import registry
         },
     },
 )
-def run_pytest_tests(target_paths: Optional[List[str]] = None, pytest_args: Optional[List[str]] = None) -> dict:
+def run_pytest_tests(
+    target_paths: Optional[List[str]] = None, pytest_args: Optional[List[str]] = None
+) -> dict:
     """
     Runs pytest tests in a specified directory or for specific files.
 
@@ -78,7 +81,11 @@ def run_pytest_tests(target_paths: Optional[List[str]] = None, pytest_args: Opti
             "stdout": process.stdout.strip(),
             "stderr": process.stderr.strip(),
             "exit_code": process.returncode,
-            "message": "Pytest execution completed." if is_success else "Pytest tests failed or encountered issues.",
+            "message": (
+                "Pytest execution completed."
+                if is_success
+                else "Pytest tests failed or encountered issues."
+            ),
         }
     except Exception as e:
         return {
