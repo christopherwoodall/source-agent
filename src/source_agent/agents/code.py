@@ -45,11 +45,11 @@ class CodeAgent:
 
     def __init__(
         self,
-        api_key: str = None,
-        base_url: str = None,
-        model: str = None,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
         temperature: float = 0.3,
-        system_prompt: str = None,
+        system_prompt: Optional[str] = None,
     ):
         self.api_key = api_key
         self.base_url = base_url
