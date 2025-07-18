@@ -35,7 +35,7 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install in development mode
-pip install -e ".[developer]"
+pip install --editable ".[developer]"
 
 # Verify the installation
 source-agent --help
