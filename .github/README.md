@@ -116,22 +116,3 @@ Source Agent provides these built-in tools for code analysis:
 - **msg_complete_tool** - REQUIRED tool to signal task completion and exit the agent loop
 
 These tools are automatically available to the AI agent during analysis.
-
----
-
-## Core Architecture
-- **Entry Point**: `src/source_agent/entrypoint.py` - CLI interface with argument parsing
-- **Agent Engine**: `src/source_agent/agents/code.py` - OpenAI-compatible client with tool integration
-- **System Prompt**: `AGENTS.md` - Defines agent behavior, roles, and constraints
-
-### Project Structure
-
-```
-source-agent/
-├── src/source_agent/
-│   ├── entrypoint.py      # CLI interface
-│   ├── agents/
-│   │   └── code.py        # Main agent logic
-│   └── tools/             # File system tools
-└── AGENTS.md              # System prompt & behavior rules
-```
