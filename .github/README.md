@@ -23,13 +23,6 @@ A simple coding agent.
 
 ---
 
-## Prerequisites
-- Python 3.10 or higher
-- An API key from one of the supported AI providers (see [Supported Providers](#supported-providers))
-- Git (for .gitignore support)
-
----
-
 ## Installation
 ### Quick Start
 ```bash
