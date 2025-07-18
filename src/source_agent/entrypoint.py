@@ -137,7 +137,8 @@ def run_interactive_mode(agent, verbose: bool):
                 # If a "task_complete" event is received, break the loop
                 if (
                     event.type == source_agent.agents.code.AgentEventType.TASK_COMPLETE
-                    or event.type == source_agent.agents.code.AgentEventType.MAX_STEPS_REACHED
+                    or event.type
+                    == source_agent.agents.code.AgentEventType.MAX_STEPS_REACHED
                     or event.type == source_agent.agents.code.AgentEventType.ERROR
                 ):
                     break
