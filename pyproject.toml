@@ -5,11 +5,10 @@ build-backend = "hatchling.build"
 
 [project.scripts]
 source-agent = "source_agent.entrypoint:main"
-heavy-agent = "source_agent.heavy:main"
 
 [project]
 requires-python = ">=3.10"
-version = "0.0.13"
+version = "0.0.14"
 name        = "source-agent"
 description = "Simple coding agent."
 readme      = ".github/README.md"
