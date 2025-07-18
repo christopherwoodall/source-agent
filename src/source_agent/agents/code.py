@@ -1,10 +1,38 @@
 import re
+import sys
 import json
 import time
 import openai
 import random
 import source_agent
+from enum import Enum
+from typing import Any, Dict, Iterator
 from pathlib import Path
+from dataclasses import field, dataclass
+
+
+class AgentEventType(Enum):
+    ITERATION_START = "iteration_start"
+    AGENT_MESSAGE = "agent_message"
+    TOOL_CALL = "tool_call"
+    TOOL_RESULT = "tool_result"
+    TASK_COMPLETE = "task_complete"
+    MAX_STEPS_REACHED = "max_steps_reached"
+    ERROR = "error"
+
+
+@dataclass(frozen=True)
+class AgentEvent:
+    """
+    Represents an event occurring during the agent's operation.
+
+    Attributes:
+        type: The type of event (e.g., iteration_start, agent_message).
+        data: A dictionary containing event-specific data.
+    """
+
+    type: AgentEventType
+    data: Dict[str, Any] = field(default_factory=dict)
 
 
 class CodeAgent:
@@ -17,10 +45,10 @@ class CodeAgent:
 
     def __init__(
         self,
-        api_key=None,
-        base_url=None,
-        model=None,
-        temperature=0.3,
+        api_key: str = None,
+        base_url: str = None,
+        model: str = None,
+        temperature: float = 0.3,
         system_prompt: str = None,
     ):
         self.api_key = api_key
@@ -46,13 +74,18 @@ class CodeAgent:
         """Clear conversation and initialize with system prompt."""
         self.messages = [{"role": "system", "content": self.system_prompt}]
 
-    def run(self, user_prompt: str = None, max_steps: int = None):
+    def run(
+        self, user_prompt: str = None, max_steps: int = None
+    ) -> Iterator[AgentEvent]:
         """
-        Run a full ReAct-style loop with tool usage.
+        Run a full ReAct-style loop with tool usage, yielding events at each step.
 
         Args:
             user_prompt: Optional user input to start the conversation.
             max_steps: Maximum steps before stopping.
+
+        Yields:
+            AgentEvent: An event describing the current state or action of the agent.
         """
         if user_prompt:
             self.messages.append({"role": "user", "content": user_prompt})
@@ -60,31 +93,66 @@ class CodeAgent:
         steps = max_steps or self.MAX_STEPS
 
         for step in range(1, steps + 1):
-            print(f"🔄 Iteration {step}/{steps}")
-            response = self.call_llm(self.messages)
+            yield AgentEvent(
+                type=AgentEventType.ITERATION_START,
+                data={"step": step, "max_steps": steps},
+            )
+
+            try:
+                response = self.call_llm(self.messages)
+            except Exception as e:
+                yield AgentEvent(
+                    type=AgentEventType.ERROR,
+                    data={"message": f"LLM call failed: {str(e)}", "exception": e},
+                )
+                return
 
             message = response.choices[0].message
             self.messages.append(message)
 
             parsed_content = self.parse_response_message(message.content)
             if parsed_content:
-                print("🤖 Agent:", parsed_content)
+                yield AgentEvent(
+                    type=AgentEventType.AGENT_MESSAGE, data={"content": parsed_content}
+                )
 
             if message.tool_calls:
                 for tool_call in message.tool_calls:
                     tool_name = tool_call.function.name
-                    print(f"🔧 Calling: {tool_name}")
+                    yield AgentEvent(
+                        type=AgentEventType.TOOL_CALL,
+                        data={
+                            "name": tool_name,
+                            "arguments": tool_call.function.arguments,
+                        },
+                    )
 
                     if tool_name == "msg_complete_tool":
-                        print("💯 Task marked complete!\n")
+                        yield AgentEvent(
+                            type=AgentEventType.TASK_COMPLETE,
+                            data={"message": "Task marked complete!"},
+                        )
                         return
 
-                    result = self.handle_tool_call(tool_call)
-                    self.messages.append(result)
+                    result_message = self.handle_tool_call(tool_call)
+                    self.messages.append(result_message)
+                    # Attempt to parse tool result content as JSON if it's a string, otherwise use as-is
+                    tool_result_content = result_message["content"]
+                    try:
+                        parsed_tool_result = json.loads(tool_result_content)
+                    except (json.JSONDecodeError, TypeError):
+                        # Keep as string if not JSON
+                        parsed_tool_result = tool_result_content
 
-            print("-" * 40 + "\n")
+                    yield AgentEvent(
+                        type=AgentEventType.TOOL_RESULT,
+                        data={"name": tool_name, "result": parsed_tool_result},
+                    )
 
-        return {"error": "Max steps reached without task completion."}
+        yield AgentEvent(
+            type=AgentEventType.MAX_STEPS_REACHED,
+            data={"message": f"Max steps ({steps}) reached without task completion."},
+        )
 
     def parse_response_message(self, message: str) -> str:
         """
@@ -119,11 +187,18 @@ class CodeAgent:
                 return self._tool_error(tool_call, f"Unknown tool: {tool_name}")
 
             result = func(**tool_args)
+            # Ensure result is always JSON serializable for the 'content' field of the tool message
+            # This is important for the LLM to process it correctly
+            if not isinstance(result, (str, dict, list, int, float, bool, type(None))):
+                result = str(
+                    result
+                )  # Fallback to string representation for complex types
+
             return {
                 "role": "tool",
                 "tool_call_id": tool_call.id,
                 "name": tool_name,
-                "content": json.dumps(result),
+                "content": json.dumps(result),  # Ensure content is always a JSON string
             }
 
         except Exception as e:
@@ -192,16 +267,20 @@ class CodeAgent:
                 openai.APIConnectionError,
             ) as e:
                 if attempt == retries:
-                    print(f"❌ LLM call failed after {attempt} attempts: {e}")
+                    print(
+                        f"❌ LLM call failed after {attempt} attempts: {e}",
+                        file=sys.stderr,
+                    )
                     raise
 
                 delay = min(base * (factor ** (attempt - 1)) + random.random(), cap)
                 print(
                     f"⚠️  Attempt {attempt} failed: {type(e).__name__}: {e}. "
-                    f"Retrying in {delay:.1f}s..."
+                    f"Retrying in {delay:.1f}s...",
+                    file=sys.stderr,
                 )
                 time.sleep(delay)
 
             except Exception as e:
-                print(f"❌ Unexpected error during LLM call: {e}")
+                print(f"❌ Unexpected error during LLM call: {e}", file=sys.stderr)
                 raise
